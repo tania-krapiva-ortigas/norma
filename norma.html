@@ -1,0 +1,941 @@
+<title>Норма — дневник питания</title>
+<style>
+:root{
+  --ground:#EEF0EA; --surface:#F9FAF6; --surface2:#E5E8DE; --raise:#FFFFFF;
+  --ink:#1B1F1A; --ink2:#5C6356; --ink3:#868C7C;
+  --line:#D4D8CA; --line2:#C2C7B5;
+  --accent:#6E2C4B; --accent2:#96476E; --accent-wash:#EDDCE4;
+  --good:#4C7A3F; --warn:#A6742A; --low:#9E4A3C;
+  --display:"Iowan Old Style","Palatino Linotype",Palatino,"Times New Roman",serif;
+  --body:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --ground:#15180F; --surface:#1D2017; --surface2:#272B1F; --raise:#22261B;
+    --ink:#EAEDE1; --ink2:#9DA391; --ink3:#7A806E;
+      --line:#313626; --line2:#3E4431;
+    --accent:#D98BB1; --accent2:#C0729A; --accent-wash:#3A2430;
+    --good:#8CB87C; --warn:#D6A455; --low:#D9857A;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#15180F; --surface:#1D2017; --surface2:#272B1F; --raise:#22261B;
+  --ink:#EAEDE1; --ink2:#9DA391; --ink3:#7A806E;
+  --line:#313626; --line2:#3E4431;
+  --accent:#D98BB1; --accent2:#C0729A; --accent-wash:#3A2430;
+  --good:#8CB87C; --warn:#D6A455; --low:#D9857A;
+}
+:root[data-theme="light"]{
+  --ground:#EEF0EA; --surface:#F9FAF6; --surface2:#E5E8DE; --raise:#FFFFFF;
+  --ink:#1B1F1A; --ink2:#5C6356; --ink3:#868C7C;
+  --line:#D4D8CA; --line2:#C2C7B5;
+  --accent:#6E2C4B; --accent2:#96476E; --accent-wash:#EDDCE4;
+  --good:#4C7A3F; --warn:#A6742A; --low:#9E4A3C;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%;}
+.wrap{max-width:620px;margin:0 auto;padding:20px 16px 96px;}
+h1,h2,h3{margin:0;font-weight:400;text-wrap:balance}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+input,select{font-family:inherit;font-size:16px;color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* --- шапка --- */
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:22px}
+.brand{font-family:var(--display);font-size:27px;letter-spacing:.01em;line-height:1}
+.brand em{font-style:normal;color:var(--accent)}
+.tagline{font-size:12px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-top:6px}
+.datebar{display:flex;align-items:center;gap:2px}
+.datebar button{background:none;border:0;padding:6px 9px;color:var(--ink2);font-size:17px;line-height:1;border-radius:6px}
+.datebar button:hover{background:var(--surface2)}
+.datebar .d{font-size:13px;color:var(--ink2);min-width:92px;text-align:center;font-variant-numeric:tabular-nums}
+
+/* --- карточки --- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.card > h2{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px;
+  display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card > h2 .note{letter-spacing:0;text-transform:none;font-size:12px;color:var(--ink3)}
+
+/* --- энергия --- */
+.energy{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}
+.kcal{font-family:var(--display);font-size:46px;line-height:.95;font-variant-numeric:tabular-nums}
+.kcal small{font-size:17px;color:var(--ink3);font-family:var(--body);margin-left:4px}
+.kcal-sub{font-size:13px;color:var(--ink2);margin-top:5px}
+.kcal-sub b{font-weight:600;color:var(--ink)}
+.macros{display:flex;gap:16px}
+.macro{text-align:right;min-width:52px}
+.macro .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.macro .val{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums;margin-top:2px}
+.macro .val span{color:var(--ink3);font-size:12px}
+.macro .mbar{height:3px;background:var(--surface2);border-radius:2px;margin-top:5px;overflow:hidden}
+.macro .mbar i{display:block;height:100%;background:var(--accent2);border-radius:2px;transition:width .35s ease}
+.ebar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;position:relative}
+.ebar i{display:block;height:100%;background:var(--accent);border-radius:3px;transition:width .4s ease}
+.ebar.over i{background:var(--warn)}
+
+/* --- нутриенты --- */
+.nuts{display:flex;flex-direction:column;gap:9px}
+.nut{display:grid;grid-template-columns:1fr 116px 46px;align-items:center;gap:10px}
+.nut .nm{font-size:14px;color:var(--ink2)}
+.nut .nm b{color:var(--ink);font-weight:400}
+.track{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;position:relative}
+.track i{display:block;height:100%;border-radius:3px;transition:width .4s ease;background:var(--accent2)}
+.track.s-low i{background:var(--low)}
+.track.s-mid i{background:var(--warn)}
+.track.s-ok i{background:var(--good)}
+.pct{font-family:var(--mono);font-size:12px;text-align:right;color:var(--ink2);font-variant-numeric:tabular-nums}
+.pct.s-ok{color:var(--good)}
+.pct.s-low{color:var(--low)}
+
+/* --- список еды --- */
+.meal{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.meal:last-child{border-bottom:0}
+.meal .mn{flex:1;font-size:15px;line-height:1.25}
+.meal .mn i{display:block;font-style:normal;font-size:12px;color:var(--ink3);margin-top:2px}
+.meal .mk{font-family:var(--mono);font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.meal .del{background:none;border:0;color:var(--ink3);font-size:18px;line-height:1;padding:4px 2px 4px 8px}
+.meal .del:hover{color:var(--low)}
+.empty{color:var(--ink3);font-size:14px;padding:4px 0}
+
+/* --- добавление --- */
+.addrow{display:flex;gap:8px;position:relative}
+.addrow .f{flex:1;position:relative}
+input[type=text],input[type=number],select{width:100%;background:var(--raise);border:1px solid var(--line2);
+  border-radius:8px;padding:11px 12px;outline-offset:0}
+input[type=number]{width:88px;text-align:center;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:11px 16px;font-weight:500;white-space:nowrap}
+:root[data-theme="dark"] .btn,html:not([data-theme]) .btn{}
+@media (prefers-color-scheme:dark){.btn{color:#1B1F1A}}
+:root[data-theme="dark"] .btn{color:#1B1F1A}
+:root[data-theme="light"] .btn{color:#fff}
+.btn:hover{background:var(--accent2)}
+.btn.ghost{background:none;border:1px solid var(--line2);color:var(--ink2);font-weight:400}
+.btn.ghost:hover{background:var(--surface2)}
+.sugg{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--raise);border:1px solid var(--line2);
+  border-radius:8px;max-height:270px;overflow-y:auto;z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.13)}
+.sugg div{padding:10px 12px;font-size:15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.sugg div:last-child{border-bottom:0}
+.sugg div:hover,.sugg div.on{background:var(--accent-wash)}
+.sugg div span{color:var(--ink3);font-size:12px;font-family:var(--mono);white-space:nowrap}
+.recent{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.chip{background:var(--surface2);border:0;border-radius:20px;padding:5px 11px;font-size:13px;color:var(--ink2)}
+.chip:hover{background:var(--accent-wash);color:var(--ink)}
+
+/* --- советы --- */
+.advice{background:var(--accent-wash);border:1px solid transparent;border-radius:var(--r);padding:16px;margin-bottom:14px}
+.advice h2{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.advice .lead{font-size:14px;color:var(--ink2);margin:0 0 14px}
+.tip{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line2)}
+.tip .amt{font-family:var(--mono);font-size:13px;color:var(--accent);white-space:nowrap;padding-top:2px;min-width:56px;text-align:right;font-variant-numeric:tabular-nums}
+.tip .tn{flex:1}
+.tip .tn b{font-weight:500;font-size:15px}
+.tip .tn i{display:block;font-style:normal;font-size:12.5px;color:var(--ink2);margin-top:3px;line-height:1.45}
+.tip .add{background:none;border:1px solid var(--line2);border-radius:16px;color:var(--ink2);font-size:12px;padding:3px 10px;align-self:flex-start;margin-top:2px}
+.tip .add:hover{border-color:var(--accent);color:var(--accent)}
+.foot-note{font-size:12.5px;color:var(--ink3);line-height:1.5;margin-top:14px;padding-top:12px;border-top:1px solid var(--line2)}
+
+/* --- настройки --- */
+details.card > summary{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);cursor:pointer;list-style:none}
+details.card > summary::-webkit-details-marker{display:none}
+details.card > summary::after{content:" +";color:var(--ink3)}
+details.card[open] > summary::after{content:" –"}
+details.card[open] > summary{margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fld{display:flex;flex-direction:column;gap:5px}
+.fld label{font-size:12px;color:var(--ink3)}
+.fld input,.fld select{width:100%;text-align:left;font-family:var(--body)}
+.seg{display:flex;gap:0;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+.seg button{flex:1;background:var(--raise);border:0;padding:10px 4px;font-size:14px;color:var(--ink2);border-right:1px solid var(--line2)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{color:#1B1F1A}
+@media (prefers-color-scheme:dark){html:not([data-theme]) .seg button[aria-pressed="true"]{color:#1B1F1A}}
+.hint{font-size:12.5px;color:var(--ink3);margin-top:12px;line-height:1.5}
+.mt{margin-top:14px}
+.warn-bar{background:var(--accent-wash);border:1px solid var(--accent2);border-radius:var(--r);
+  padding:13px 15px;margin-bottom:14px;font-size:13.5px;line-height:1.5;color:var(--ink)}
+.warn-bar b{font-weight:600}
+.sync{font-size:12px;color:var(--ink3);margin:-14px 0 16px;display:flex;align-items:center;gap:6px}
+.sync::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--good);flex:none}
+.sync.wait::before{background:var(--warn)}
+.sync.off::before{background:var(--low)}
+.sync.off{color:var(--low)}
+.save-state{font-size:12px;color:var(--ink3);text-align:center;margin:-4px 0 14px}
+.save-state.bad{color:var(--low)}
+textarea{width:100%;min-height:96px;background:var(--raise);border:1px solid var(--line2);border-radius:8px;
+  padding:10px 12px;font-family:var(--mono);font-size:12px;color:var(--ink);resize:vertical}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+@media (max-width:430px){
+  .nut{grid-template-columns:1fr 84px 42px}
+  .kcal{font-size:40px}
+  .macros{gap:12px}
+  .macro{min-width:46px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1 class="brand">Норм<em>а</em></h1>
+      <div class="tagline">дневник питания</div>
+    </div>
+    <div class="datebar">
+      <button id="prev" aria-label="Предыдущий день">‹</button>
+      <div class="d" id="dlabel">сегодня</div>
+      <button id="next" aria-label="Следующий день">›</button>
+    </div>
+  </div>
+
+  <div id="storage-warn"></div>
+  <div id="sync-line" class="sync" hidden></div>
+
+  <div class="card">
+    <h2>Энергия <span class="note" id="left-note"></span></h2>
+    <div class="energy">
+      <div>
+        <div class="kcal"><span id="kcal-now">0</span><small>/ <span id="kcal-goal">2000</span> ккал</small></div>
+        <div class="kcal-sub" id="kcal-sub"></div>
+      </div>
+      <div class="macros" id="macros"></div>
+    </div>
+    <div class="ebar" id="ebar"><i style="width:0%"></i></div>
+  </div>
+
+  <div class="card">
+    <h2>Витамины и минералы <span class="note">% от нормы</span></h2>
+    <div class="nuts" id="nuts"></div>
+  </div>
+
+  <div class="card">
+    <h2>Что съедено <span class="note" id="meal-count"></span></h2>
+    <div id="meals"></div>
+    <div class="addrow mt">
+      <div class="f">
+        <input type="text" id="q" placeholder="Что съела? Например: творог" autocomplete="off" />
+        <div class="sugg" id="sugg" hidden></div>
+      </div>
+      <input type="number" id="gr" value="100" min="1" max="3000" step="10" aria-label="Граммы" />
+      <button class="btn" id="add">Добавить</button>
+    </div>
+    <div class="recent" id="recent"></div>
+  </div>
+
+  <div id="advice-slot"></div>
+
+  <details class="card" id="settings">
+    <summary>Мои нормы</summary>
+    <div class="seg mt" id="sex" style="margin-top:0">
+      <button data-v="f" aria-pressed="true">Женщина</button>
+      <button data-v="m" aria-pressed="false">Мужчина</button>
+    </div>
+    <div class="grid2 mt">
+      <div class="fld"><label for="age">Возраст</label><input type="number" id="age" value="35" min="14" max="99" /></div>
+      <div class="fld"><label for="hgt">Рост, см</label><input type="number" id="hgt" value="168" min="120" max="220" /></div>
+      <div class="fld"><label for="wgt">Вес, кг</label><input type="number" id="wgt" value="60" min="35" max="200" /></div>
+      <div class="fld"><label for="act">Активность</label>
+        <select id="act">
+          <option value="1.2">Сидячая</option>
+          <option value="1.375" selected>Лёгкая (1–3 тр./нед)</option>
+          <option value="1.55">Средняя (3–5 тр./нед)</option>
+          <option value="1.725">Высокая (6–7 тр./нед)</option>
+        </select>
+      </div>
+    </div>
+    <div class="fld mt"><label for="goal">Цель</label>
+      <select id="goal">
+        <option value="0.85">Снизить вес</option>
+        <option value="1" selected>Удержать вес</option>
+        <option value="1.1">Набрать массу</option>
+      </select>
+    </div>
+    <div class="fld mt"><label for="manual">Своя цель по калориям (необязательно)</label>
+      <input type="number" id="manual" placeholder="посчитаю сама" min="800" max="5000" /></div>
+    <p class="hint" id="calc-hint"></p>
+  </details>
+
+  <details class="card">
+    <summary>Свой продукт</summary>
+    <p class="hint" style="margin-top:0">Если чего-то нет в списке — впиши с упаковки, на 100 г. Пустые поля — это ноль.</p>
+    <div class="fld mt"><label for="c-name">Название</label><input type="text" id="c-name" placeholder="Йогурт «Название»" /></div>
+    <div class="grid2 mt">
+      <div class="fld"><label for="c-kcal">Ккал</label><input type="number" id="c-kcal" /></div>
+      <div class="fld"><label for="c-p">Белки, г</label><input type="number" id="c-p" step="0.1" /></div>
+      <div class="fld"><label for="c-f">Жиры, г</label><input type="number" id="c-f" step="0.1" /></div>
+      <div class="fld"><label for="c-c">Углеводы, г</label><input type="number" id="c-c" step="0.1" /></div>
+      <div class="fld"><label for="c-fib">Клетчатка, г</label><input type="number" id="c-fib" step="0.1" /></div>
+      <div class="fld"><label for="c-ca">Кальций, мг</label><input type="number" id="c-ca" step="1" /></div>
+    </div>
+    <button class="btn mt" id="c-save">Сохранить продукт</button>
+    <div id="c-list" class="recent"></div>
+  </details>
+
+  <details class="card">
+    <summary>Резервная копия</summary>
+    <p class="hint" style="margin-top:0">Записи хранятся на сервере и подтягиваются на любом устройстве.
+      Копия ниже — на всякий случай: сохрани текст где угодно (заметки, письмо себе), а чтобы вернуть — вставь его
+      обратно и нажми «Восстановить».</p>
+    <textarea id="backup" spellcheck="false" aria-label="Резервная копия данных"></textarea>
+    <div class="row-btns">
+      <button class="btn ghost" id="b-copy">Скопировать</button>
+      <button class="btn ghost" id="b-restore">Восстановить из текста</button>
+      <span id="b-msg" class="hint" style="margin:0;align-self:center"></span>
+    </div>
+  </details>
+
+  <p class="hint" style="text-align:center;padding:0 8px">
+    Значения нутриентов — усреднённые справочные, для бытового контроля их достаточно,
+    для медицинских решений — нет.
+  </p>
+</div>
+<script>
+/* [название, категория, ккал, белок, жир, углеводы, клетчатка,
+    железо мг, кальций мг, магний мг, калий мг, цинк мг,
+    вит.C мг, вит.D мкг, B12 мкг, фолат мкг, омега-3 г, порция г?]  — всё на 100 г */
+const DB=[
+["Овощное рагу","veg",65,1.6,3.5,7.5,2.2, 0.6,25,18,280,0.3, 20,0,0,25,0.03,250],
+["Овощи гриль","veg",90,1.8,5.5,8,2.5, 0.6,22,20,290,0.3, 30,0,0,30,0.05,200],
+["Овощной салат с маслом","veg",75,1.2,5.5,5,1.5, 0.5,25,14,250,0.2, 25,0,0,25,0.04,200],
+["Тушёная капуста","veg",60,1.6,3,6.5,2.6, 0.6,45,15,200,0.2, 30,0,0,35,0.03,200],
+["Икра кабачковая","veg",97,1.2,7,7.4,2, 0.7,20,15,240,0.2, 6,0,0,15,0.03,100],
+["Винегрет","veg",80,1.3,5,7,2.5, 0.8,25,18,280,0.3, 8,0,0,40,0.04,150],
+["Зефир","sweet",326,0.8,0,78,1, 0.3,8,2,12,0.05, 0,0,0,0,0,30],
+["Пастила","sweet",324,0.5,0,80,2, 0.9,20,8,50,0.1, 0.5,0,0,2,0,30],
+["Мармелад","sweet",321,0.4,0,79,0.5, 0.4,10,5,20,0.05, 0,0,0,0,0,25],
+["Халва подсолнечная","sweet",516,11.6,29.7,54,6.4, 1.4,211,178,351,4.5, 0,0,0,60,0.06,30],
+["Сгущённое молоко","sweet",321,7.2,8.5,56,0, 0.2,262,24,305,0.9, 2.6,0.2,0.4,10,0.02,30],
+["Сырок глазированный","sweet",400,8.5,23,38,0.5, 0.4,130,15,120,0.5, 0,0.1,0.3,10,0.05,45],
+["Пряники","sweet",350,5,3,75,1, 1.2,20,15,80,0.3, 0,0,0,10,0.02,40],
+["Торт бисквитный","sweet",350,4.5,16,48,0.8, 1,40,12,90,0.3, 0,0.1,0.2,10,0.05,100],
+["Творожная запеканка","dish",168,12,5,18,0.5, 0.5,90,15,130,0.5, 0.3,0.2,0.4,15,0.03,150],
+["Круассан","dish",406,8.2,21,45.8,2.6, 1.3,37,15,118,0.7, 0.2,0.3,0.2,100,0.2,60],
+["Омлет из 2 яиц","dish",154,10.6,11.7,1.5,0, 1.5,70,13,150,1.1, 0,1.6,0.9,40,0.12,180],
+["Сырники","dish",220,17,8,24,0.5, 0.6,100,15,120,0.7, 0.3,0.3,0.4,15,0.03,150],
+["Блины","dish",227,6.1,8,33,1.1, 1.2,90,12,120,0.6, 0.2,0.3,0.3,30,0.05,150],
+["Овсяная каша на молоке","dish",105,3.7,3.2,15,1.6, 0.8,70,25,130,0.8, 0.3,0.1,0.3,10,0.03,250],
+["Гранола / мюсли","dish",450,9,17,64,7, 3,60,100,350,2, 0.5,0,0,30,0.6,50],
+["Сэндвич с курицей","dish",220,14,8,23,1.6, 1.5,60,25,200,1, 2,0.2,0.2,40,0.05,180],
+["Салат «Цезарь»","dish",190,11,13,6,1.2, 1,90,18,220,0.9, 5,0.3,0.4,60,0.1,200],
+["Суп овощной","dish",45,1.5,1.5,6.5,1.3, 0.4,20,12,200,0.2, 8,0,0,15,0.02,300],
+["Борщ","dish",60,2.5,3.2,5.5,1.5, 0.7,25,15,230,0.4, 10,0,0.1,20,0.03,300],
+["Плов с мясом","dish",190,8,8,22,1, 1.2,15,25,180,1.5, 1,0,0.6,20,0.04,250],
+["Пельмени","dish",275,12,12,29,1.2, 1.8,25,20,180,1.6, 0.5,0.1,0.8,25,0.05,200],
+["Пицца","dish",266,11,10,33,2.3, 2.5,188,23,184,1.4, 1,0.2,0.4,60,0.1,200],
+["Бургер","dish",295,17,14,24,1.5, 2.6,100,22,250,3, 1,0.1,1,40,0.1,200],
+["Шаурма","dish",210,12,10,19,1.5, 1.4,45,22,220,1.4, 3,0.1,0.6,30,0.06,250],
+["Роллы с лососем","dish",180,7,5,28,1, 0.7,20,20,130,0.5, 1,2,1,10,0.4,200],
+["Картофель фри","dish",312,3.4,15,41,3.8, 0.8,18,32,579,0.5, 6,0,0,30,0.1,150],
+["Молочный ломтик Kinder","sweet",414,8.4,26,33,0.8, 0.6,165,18,200,0.7, 0,0.2,0.4,8,0.05,28],
+["Мороженое","sweet",207,3.5,11,24,0.7, 0.1,128,14,199,0.4, 0.6,0.2,0.4,5,0.02,100],
+["Печенье","sweet",437,6,16,68,2.5, 2.3,30,30,130,0.6, 0,0,0,20,0.05,40],
+["Молочный шоколад","sweet",535,7.6,30,59,3.4, 2.4,189,63,372,2.3, 0,0.1,0.7,11,0.1,30],
+["Чипсы","sweet",536,6.6,35,53,4.4, 1.6,24,63,1275,1, 31,0,0,45,0.1,50],
+["Сахар / варенье в чай","sweet",300,0,0,75,0, 0.1,10,2,20,0.02, 0,0,0,0,0,20],
+["Стейк рибай","meat",291,24,21,0,0, 2.1,15,20,300,4.5, 0,0.1,2.2,6,0.05,200],
+["Стейк стриплойн","meat",250,25,16,0,0, 2.3,14,22,320,4.8, 0,0.1,2.3,7,0.04,200],
+["Стейк филе-миньон","meat",218,26,12,0,0, 2.5,12,24,340,4.2, 0,0.1,2.4,7,0.04,200],
+["Стейк фланк","meat",192,26,9,0,0, 2.2,14,24,350,4.5, 0,0.1,2.6,8,0.03,200],
+["Стейк скирт (мачете)","meat",210,24,12,0,0, 2.6,12,22,330,5.5, 0,0.1,2.8,7,0.04,200],
+["Стейк пиканья","meat",220,25.5,13,0,0, 2.2,13,24,330,4.4, 0,0.1,2.2,7,0.04,200],
+["Стейк из тунца","fish",144,23.3,4.9,0,0, 1,8,50,444,0.6, 0,1.7,9.4,2,0.4,200],
+["Фарш говяжий","meat",254,17,20,0,0, 2.2,18,17,270,4.2, 0,0.1,2.1,7,0.05,120],
+["Котлета домашняя","dish",220,15,15,6,0.4, 1.8,25,18,230,3, 0.5,0.2,1.2,12,0.08,120],
+["Шашлык из свинины","dish",280,19,22,1,0, 1.2,15,22,350,2.5, 0.5,0.4,0.8,5,0.05,200],
+["Сосиски","meat",266,12,24,2,0, 1.1,20,12,180,1.6, 0,0.3,0.8,4,0.06,100],
+["Колбаса варёная","meat",257,12.8,22,1.5,0, 1.7,12,15,200,1.8, 0,0.2,0.9,4,0.05,50],
+["Бекон / грудинка","meat",541,17,50,1,0, 0.9,11,15,250,1.8, 0,0.3,0.6,3,0.1,30],
+["Утка без кожи","meat",201,23.5,11.2,0,0, 2.7,12,21,252,2.6, 0,0.1,0.4,25,0.06],
+["Кролик","meat",173,21.8,8.8,0,0, 1.9,15,20,335,1.9, 0,0.1,7.2,9,0.05],
+["Хек / тилапия","fish",96,20,1.5,0,0, 0.4,15,30,350,0.5, 0,2,1.3,8,0.15],
+["Палтус","fish",111,19,2.3,0,0, 0.2,7,23,450,0.4, 0,4.7,1.1,12,0.6],
+["Крабовые палочки","fish",95,6,1,15,0, 0.3,10,15,90,0.3, 0,0.2,0.5,3,0.1,100],
+["Куриная грудка","meat",165,31,3.6,0,0, 1,15,29,256,1, 0,0.1,0.3,4,0.03],
+["Куриное бедро без кожи","meat",177,24,8,0,0, 1.3,12,23,230,2.1, 0,0.1,0.6,8,0.06],
+["Индейка, филе","meat",157,29,3,0,0, 1.2,12,28,280,1.7, 0,0.1,0.4,7,0.03],
+["Говядина постная","meat",217,26,12,0,0, 2.6,12,21,318,6.3, 0,0.1,2.6,8,0.05],
+["Свинина постная","meat",242,27,14,0,0, 0.9,19,28,423,2.4, 0.6,0.5,0.7,5,0.02],
+["Печень говяжья","meat",175,26,4.9,5.1,0, 6.5,6,21,352,5.3, 1.9,1.2,70,253,0.03,100],
+["Печень куриная","meat",167,24,6.5,0.9,0, 11.6,11,25,315,3.9, 27,0.2,16.6,588,0.05,100],
+["Баранина","meat",258,25,17,0,0, 1.9,17,25,310,4.5, 0,0.1,2.7,20,0.2],
+["Ветчина из индейки","meat",104,17,2.5,2,0, 0.9,8,20,300,1.5, 0,0.1,0.3,4,0.02,60],
+["Лосось / сёмга","fish",208,20,13,0,0, 0.3,12,29,363,0.4, 3.9,11,3.2,26,2.3],
+["Скумбрия","fish",205,19,14,0,0, 1.6,12,76,314,0.6, 0.4,16,8.7,1,2.6],
+["Сельдь","fish",158,18,9,0,0, 1.1,57,32,327,1, 0.7,16,13.7,10,1.7],
+["Сардины консервированные","fish",208,25,11,0,0, 2.9,382,39,397,1.3, 0,4.8,8.9,10,1.5,90],
+["Тунец в собственном соку","fish",116,26,0.8,0,0, 1.3,11,33,237,0.7, 0,1.7,2.2,4,0.28,100],
+["Треска","fish",82,18,0.7,0,0, 0.4,16,32,413,0.5, 1,1,0.9,7,0.2],
+["Дорада / сибас","fish",97,18,2,0,0, 0.3,20,30,350,0.5, 0,3,1.5,5,0.5],
+["Форель","fish",148,21,7,0,0, 0.3,43,26,375,0.5, 2.4,13,4.5,12,1.1],
+["Печень трески консерв.","fish",613,4.2,65,1.2,0, 1.9,30,10,120,0.6, 3.4,100,8.5,10,19,30],
+["Креветки","fish",99,24,0.3,0.2,0, 0.5,70,39,259,1.6, 0,0.1,1.1,19,0.3],
+["Мидии","fish",172,24,4.5,7.4,0, 6.7,33,37,268,2.7, 13.6,0.2,24,76,0.7],
+["Кальмар","fish",92,15.6,1.4,3,0, 0.7,32,33,246,1.5, 4.7,0,1.3,5,0.5],
+["Икра красная","fish",250,32,15,0,0, 11.9,275,300,181,0.95, 2.5,2.9,20,50,6.8,20],
+["Яйцо куриное","egg",143,12.6,9.5,0.7,0, 1.8,56,12,138,1.3, 0,2,1.1,47,0.1],
+["Яичный белок","egg",52,11,0.2,0.7,0, 0.1,7,11,163,0.03, 0,0,0.1,4,0,66],
+["Творог 5%","dairy",121,16,5,3,0, 0.1,120,11,110,0.5, 0.5,0.1,0.6,12,0.01],
+["Творог обезжиренный","dairy",71,16.5,0.6,1.5,0, 0.1,120,11,117,0.4, 0.5,0,0.6,12,0],
+["Греческий йогурт 2%","dairy",73,10,1.9,3.6,0, 0.05,110,11,141,0.5, 0.5,0,0.75,7,0.01],
+["Йогурт натуральный 3.2%","dairy",66,5,3.2,4.5,0, 0.05,120,12,155,0.6, 0.8,0.1,0.4,7,0.02],
+["Кефир 2.5%","dairy",51,3.4,2.5,4,0, 0.1,120,14,146,0.4, 0.7,0,0.4,8,0.01,250],
+["Молоко 2.5%","dairy",52,2.9,2.5,4.7,0, 0.05,118,11,146,0.4, 1,0.1,0.45,5,0.01,250],
+["Сыр твёрдый","cheese",380,27,29,1.5,0, 0.4,900,32,110,3.5, 0,0.5,1.5,20,0.3],
+["Моцарелла","cheese",280,22,20,2.2,0, 0.4,505,20,76,2.9, 0,0.4,1.4,7,0.2],
+["Фета","cheese",264,14,21,4.1,0, 0.65,493,19,62,2.9, 0,0.4,1.7,32,0.2],
+["Творожный сыр","cheese",255,6,24,4,0, 0.1,98,9,138,0.5, 0,0.2,0.3,11,0.1,25],
+["Сметана 20%","dairy",206,2.8,20,3.4,0, 0.1,86,8,109,0.3, 0.6,0.2,0.3,8,0.1,30],
+["Сливочное масло","oil",717,0.9,81,0.1,0, 0.02,24,2,24,0.1, 0,1.5,0.2,3,0.3],
+["Гречка варёная","grain",92,3.4,0.6,19.9,2.7, 0.8,7,51,88,0.6, 0,0,0,14,0.03],
+["Рис бурый варёный","grain",123,2.7,1,25.6,1.6, 0.6,10,43,86,0.6, 0,0,0,4,0.01],
+["Рис белый варёный","grain",130,2.7,0.3,28,0.4, 0.2,10,12,35,0.5, 0,0,0,3,0],
+["Овсянка на воде","grain",71,2.5,1.5,12,1.7, 0.9,9,27,61,0.9, 0,0,0,6,0.02,220],
+["Овсяные хлопья сухие","grain",379,13,6.5,67,10, 4.3,52,138,362,3.6, 0,0,0,32,0.1,50],
+["Киноа варёная","grain",120,4.4,1.9,21,2.8, 1.5,17,64,172,1.1, 0,0,0,42,0.09],
+["Булгур варёный","grain",83,3.1,0.2,18.6,4.5, 0.96,10,32,68,0.6, 0,0,0,18,0.02],
+["Паста варёная (тв. сорта)","grain",158,5.8,0.9,31,1.8, 1.3,7,18,44,0.5, 0,0,0,18,0.02],
+["Кускус варёный","grain",112,3.8,0.2,23,1.4, 0.4,8,8,58,0.3, 0,0,0,15,0],
+["Перловка варёная","grain",123,2.3,0.4,28,3.8, 1.3,11,22,93,0.8, 0,0,0,16,0.02],
+["Хлеб цельнозерновой","bread",247,13,3.4,41,7, 2.5,107,82,254,1.8, 0,0,0,42,0.05],
+["Хлеб белый","bread",265,9,3.2,49,2.7, 3.6,150,25,115,0.7, 0,0,0,85,0.02],
+["Хлебцы цельнозерновые","bread",340,11,3,66,15, 3,40,120,400,2.5, 0,0,0,30,0.05,20],
+["Картофель варёный","veg",87,2,0.1,20,1.8, 0.3,8,20,379,0.3, 13,0,0,10,0.01,180],
+["Батат запечённый","veg",90,2,0.15,21,3.3, 0.7,38,27,475,0.3, 20,0,0,6,0.01,180],
+["Чечевица варёная","legume",116,9,0.4,20,8, 3.3,19,36,369,1.3, 1.5,0,0,181,0.04],
+["Нут варёный","legume",164,8.9,2.6,27,7.6, 2.9,49,48,291,1.5, 1.3,0,0,172,0.1],
+["Фасоль красная варёная","legume",127,8.7,0.5,22.8,6.4, 2.9,28,45,405,1, 1.2,0,0,130,0.1],
+["Маш / чёрная фасоль","legume",132,8.9,0.5,23.7,8.7, 2.1,27,70,355,1.1, 0,0,0,149,0.09],
+["Тофу","legume",144,15.8,8.7,2.8,2.3, 2.7,350,58,121,1.6, 0.1,0,0,19,0.4,120],
+["Зелёный горошек","legume",81,5.4,0.4,14,5.7, 1.5,25,33,244,1.2, 40,0,0,65,0.04,100],
+["Эдамаме","legume",121,11,5,9,5, 2.3,63,64,436,1.4, 6.1,0,0,311,0.36,100],
+["Хумус","legume",166,7.9,9.6,14.3,6, 2.4,38,71,228,1.8, 0.8,0,0,83,0.1,50],
+["Брокколи","veg",34,2.8,0.4,7,2.6, 0.7,47,21,316,0.4, 89,0,0,63,0.02],
+["Шпинат","veg",23,2.9,0.4,3.6,2.2, 2.7,99,79,558,0.5, 28,0,0,194,0.14,80],
+["Руккола","veg",25,2.6,0.7,3.7,1.6, 1.5,160,47,369,0.5, 15,0,0,97,0.17,40],
+["Салат листовой","veg",15,1.4,0.2,2.9,1.3, 0.9,36,13,194,0.2, 9.2,0,0,38,0.06,60],
+["Капуста белокочанная","veg",25,1.3,0.1,5.8,2.5, 0.5,40,12,170,0.2, 36,0,0,43,0.02],
+["Цветная капуста","veg",25,1.9,0.3,5,2, 0.4,22,15,299,0.3, 48,0,0,57,0.02],
+["Брюссельская капуста","veg",43,3.4,0.3,9,3.8, 1.4,42,23,389,0.4, 85,0,0,61,0.1],
+["Морковь","veg",41,0.9,0.2,9.6,2.8, 0.3,33,12,320,0.2, 5.9,0,0,19,0.002],
+["Помидор","veg",18,0.9,0.2,3.9,1.2, 0.3,10,11,237,0.2, 14,0,0,15,0.003],
+["Огурец","veg",15,0.7,0.1,3.6,0.5, 0.3,16,13,147,0.2, 2.8,0,0,7,0.005],
+["Перец болгарский красный","veg",31,1,0.3,6,2.1, 0.4,7,12,211,0.25, 128,0,0,46,0.02],
+["Кабачок","veg",17,1.2,0.3,3.1,1, 0.4,16,18,261,0.3, 17.9,0,0,24,0.06],
+["Баклажан","veg",25,1,0.2,6,3, 0.2,9,14,229,0.16, 2.2,0,0,22,0.01],
+["Лук репчатый","veg",40,1.1,0.1,9.3,1.7, 0.2,23,10,146,0.17, 7.4,0,0,19,0.004,50],
+["Свёкла варёная","veg",44,1.7,0.2,10,2, 0.8,16,23,305,0.35, 3.6,0,0,80,0.005],
+["Тыква","veg",26,1,0.1,6.5,0.5, 0.8,21,12,340,0.32, 9,0,0,16,0.005],
+["Авокадо","veg",160,2,14.7,8.5,6.7, 0.6,12,29,485,0.6, 10,0,0,81,0.11,100],
+["Шампиньоны","veg",22,3.1,0.3,3.3,1, 0.5,3,9,318,0.5, 2.1,0.2,0.04,17,0],
+["Спаржа","veg",20,2.2,0.1,3.9,2.1, 2.1,24,14,202,0.5, 5.6,0,0,52,0.01],
+["Зелень (укроп, петрушка)","veg",36,3,0.8,6.3,3.3, 6.2,138,50,554,0.9, 133,0,0,152,0.02,20],
+["Морская капуста","veg",25,1.7,0.6,3.4,1.3, 2.9,168,121,89,1.2, 3,0,0,180,0.01,60],
+["Квашеная капуста","veg",19,0.9,0.1,4.3,2.9, 1.5,30,13,170,0.19, 15,0,0,24,0.01,80],
+["Яблоко","fruit",52,0.3,0.2,14,2.4, 0.12,6,5,107,0.04, 4.6,0,0,3,0.01,150],
+["Банан","fruit",89,1.1,0.3,23,2.6, 0.26,5,27,358,0.15, 8.7,0,0,20,0.03,120],
+["Апельсин","fruit",47,0.9,0.1,12,2.4, 0.1,40,10,181,0.07, 53,0,0,30,0.01,150],
+["Мандарин","fruit",53,0.8,0.3,13,1.8, 0.15,37,12,166,0.07, 27,0,0,16,0.02,100],
+["Киви","fruit",61,1.1,0.5,15,3, 0.3,34,17,312,0.14, 93,0,0,25,0.04,80],
+["Клубника","fruit",32,0.7,0.3,7.7,2, 0.4,16,13,153,0.14, 59,0,0,24,0.07],
+["Черника","fruit",57,0.7,0.3,14,2.4, 0.28,6,6,77,0.16, 9.7,0,0,6,0.06,100],
+["Малина","fruit",52,1.2,0.7,12,6.5, 0.7,25,22,151,0.42, 26,0,0,21,0.13,100],
+["Виноград","fruit",69,0.7,0.2,18,0.9, 0.36,10,7,191,0.07, 3.2,0,0,2,0.02,100],
+["Груша","fruit",57,0.4,0.1,15,3.1, 0.18,9,7,116,0.1, 4.3,0,0,7,0],
+["Манго","fruit",60,0.8,0.4,15,1.6, 0.16,11,10,168,0.09, 36,0,0,43,0.05],
+["Гранат","fruit",83,1.7,1.2,19,4, 0.3,10,12,236,0.35, 10,0,0,38,0.08,120],
+["Хурма","fruit",70,0.6,0.2,18,3.6, 0.15,8,9,161,0.11, 7.5,0,0,8,0],
+["Персик / нектарин","fruit",39,0.9,0.25,10,1.5, 0.25,6,9,190,0.17, 6.6,0,0,4,0],
+["Арбуз","fruit",30,0.6,0.15,7.6,0.4, 0.24,7,10,112,0.1, 8.1,0,0,3,0,300],
+["Курага","fruit",241,3.4,0.5,63,7.3, 2.7,55,32,1162,0.39, 1,0,0,10,0,40],
+["Чернослив","fruit",240,2.2,0.4,64,7.1, 0.93,43,41,732,0.44, 0.6,0,0,4,0.01,40],
+["Финики","fruit",282,2.5,0.4,75,8, 1,39,43,656,0.44, 0.4,0,0,15,0.01,30],
+["Изюм","fruit",299,3.1,0.5,79,3.7, 1.9,50,32,749,0.22, 2.3,0,0,5,0.01,30],
+["Грецкий орех","nut",654,15,65,14,6.7, 2.9,98,158,441,3.1, 1.3,0,0,98,9.1,20],
+["Миндаль","nut",579,21,50,22,12.5, 3.7,269,270,733,3.1, 0,0,0,44,0.003,25],
+["Фундук","nut",628,15,61,17,9.7, 4.7,114,163,680,2.5, 6.3,0,0,113,0.09,25],
+["Кешью","nut",553,18,44,30,3.3, 6.7,37,292,660,5.8, 0.5,0,0,25,0.06,25],
+["Фисташки","nut",560,20,45,28,10.6, 3.9,105,121,1025,2.2, 5.6,0,0,51,0.25,25],
+["Арахис","nut",567,26,49,16,8.5, 4.6,92,168,705,3.3, 0,0,0,240,0.003,25],
+["Арахисовая паста","nut",588,25,50,20,6, 1.9,43,154,649,2.9, 0,0,0,87,0.01,20],
+["Семена чиа","seed",486,17,31,42,34, 7.7,631,335,407,4.6, 1.6,0,0,49,17.8,15],
+["Семена льна","seed",534,18,42,29,27, 5.7,255,392,813,4.3, 0.6,0,0,87,22.8,15],
+["Тыквенные семечки","seed",559,30,49,11,6, 8.8,46,592,809,7.8, 1.9,0,0,58,0.12,20],
+["Подсолнечные семечки","seed",584,21,51,20,8.6, 5.2,78,325,645,5, 1.4,0,0,227,0.07,20],
+["Кунжут","seed",573,17.7,50,23,12, 14.6,975,351,468,7.8, 0,0,0,97,0.38,15],
+["Тахини","seed",595,17,53,21,9.3, 8.9,426,95,414,4.6, 0,0,0,98,0.4,20],
+["Оливковое масло","oil",884,0,100,0,0, 0.56,1,0,1,0, 0,0,0,0,0.76,10],
+["Льняное масло","oil",884,0,100,0,0, 0,1,0,0,0, 0,0,0,0,53,10],
+["Оливки","other",145,1,15,3.8,3.3, 3.3,88,4,8,0.22, 0.9,0,0,3,0.06,30],
+["Тёмный шоколад 70%","sweet",598,7.8,43,46,11, 11.9,73,228,715,3.3, 0,0,0,12,0.03,20],
+["Мёд","sweet",304,0.3,0,82,0.2, 0.42,6,2,52,0.22, 0.5,0,0,2,0,20],
+["Кокосовое молоко","other",230,2.3,24,5.5,2.2, 1.6,16,37,263,0.67, 2.8,0,0,16,0,100],
+["Протеин сывороточный","other",400,80,5,8,0, 1,500,60,400,2, 0,0,2,10,0,30],
+["Кофе с молоком","drink",25,1.2,1,1.8,0, 0.05,45,7,90,0.15, 0.4,0,0.2,3,0,200],
+["Кофе чёрный","drink",2,0.1,0,0,0, 0.01,2,3,49,0.02, 0,0,0,0,0,200],
+["Вино красное","alco",85,0.07,0,2.6,0, 0.46,8,12,127,0.14, 0,0,0,1,0,150],
+["Пиво светлое","alco",43,0.5,0,3.6,0, 0.02,4,6,27,0.01, 0,0,0,6,0,330],
+["Апельсиновый сок","drink",45,0.7,0.2,10.4,0.2, 0.2,11,11,200,0.05, 50,0,0,30,0,200]
+];
+const CATP={dish:200,alco:150,meat:120,fish:120,egg:55,dairy:150,cheese:30,grain:150,bread:35,legume:130,veg:100,fruit:130,nut:25,seed:15,oil:10,sweet:20,drink:200,other:50};
+const KEYS=["kcal","p","f","c","fib","fe","ca","mg","k","zn","vc","vd","b12","fol","o3"];
+const ALIAS={
+"Молочный ломтик Kinder":"киндер молочный ломтик milk slice",
+"Стейк рибай":"рибай говядина мясо","Стейк стриплойн":"нью-йорк стриплойн говядина мясо",
+"Стейк филе-миньон":"вырезка тендерлоин говядина мясо","Стейк фланк":"фланк говядина мясо",
+"Стейк скирт (мачете)":"мачете скирт говядина мясо","Стейк пиканья":"пиканья сирлоин говядина мясо",
+"Стейк из тунца":"тунец рыба",
+"Фарш говяжий":"мясо котлеты","Котлета домашняя":"котлеты мясо","Шашлык из свинины":"шашлык мясо",
+"Сосиски":"сардельки мясо","Колбаса варёная":"докторская колбаса","Бекон / грудинка":"бекон грудинка",
+"Утка без кожи":"утка птица","Кролик":"крольчатина мясо","Хек / тилапия":"белая рыба минтай пангасиус рыба",
+"Палтус":"белая рыба рыба","Крабовые палочки":"крабовые палочки краб морепродукты",
+"Паста варёная (тв. сорта)":"макароны спагетти вермишель рожки пенне фузилли лапша",
+"Гречка варёная":"гречневая каша","Овсянка на воде":"геркулес каша овсяная",
+"Овсяные хлопья сухие":"геркулес","Перловка варёная":"перловая каша ячневая",
+"Хлеб цельнозерновой":"бородинский ржаной","Хлебцы цельнозерновые":"хлебцы",
+"Картофель варёный":"картошка пюре","Батат запечённый":"сладкий картофель",
+"Куриная грудка":"курица филе","Куриное бедро без кожи":"курица окорочок",
+"Говядина постная":"мясо стейк телятина","Свинина постная":"мясо",
+"Индейка, филе":"индюшка","Печень куриная":"субпродукты","Печень говяжья":"субпродукты",
+"Лосось / сёмга":"рыба форель красная","Сельдь":"селёдка","Скумбрия":"макрель",
+"Дорада / сибас":"рыба белая","Треска":"рыба белая минтай","Тунец в собственном соку":"рыба консервы",
+"Креветки":"морепродукты","Мидии":"морепродукты","Кальмар":"морепродукты",
+"Яйцо куриное":"яйца яичница","Творог 5%":"творожок","Творог обезжиренный":"творожок",
+"Греческий йогурт 2%":"йогурт","Йогурт натуральный 3.2%":"йогурт",
+"Сыр твёрдый":"пармезан гауда чеддер маасдам","Фета":"брынза","Творожный сыр":"филадельфия маскарпоне",
+"Моцарелла":"сыр","Сметана 20%":"сметанка","Сливочное масло":"масло",
+"Помидор":"томат черри","Перец болгарский красный":"паприка","Кабачок":"цукини",
+"Шампиньоны":"грибы вешенки","Зелень (укроп, петрушка)":"укроп петрушка кинза базилик",
+"Салат листовой":"латук айсберг","Руккола":"салат","Морская капуста":"ламинария водоросли",
+"Капуста белокочанная":"капуста","Свёкла варёная":"буряк","Морковь":"морковка",
+"Овощное рагу":"тушёные овощи рататуй","Овощи гриль":"запечённые овощи",
+"Овощной салат с маслом":"салат овощи","Икра кабачковая":"кабачковая икра",
+"Чечевица варёная":"бобовые","Нут варёный":"турецкий горох бобовые","Фасоль красная варёная":"бобовые",
+"Маш / чёрная фасоль":"бобовые","Эдамаме":"соевые бобы","Тофу":"соевый сыр",
+"Грецкий орех":"орехи","Миндаль":"орехи","Фундук":"орехи лещина","Кешью":"орехи",
+"Фисташки":"орехи","Арахис":"орехи","Арахисовая паста":"ореховая паста",
+"Тыквенные семечки":"семечки","Подсолнечные семечки":"семечки","Семена льна":"льняное семя",
+"Тахини":"кунжутная паста","Тёмный шоколад 70%":"горький шоколад",
+"Роллы с лососем":"суши","Картофель фри":"фри","Плов с мясом":"плов",
+"Сырники":"творожники","Гранола / мюсли":"мюсли хлопья","Салат «Цезарь»":"цезарь",
+"Суп овощной":"суп","Борщ":"щи суп","Сэндвич с курицей":"бутерброд сандвич",
+"Омлет из 2 яиц":"яичница","Творожная запеканка":"запеканка",
+"Сырок глазированный":"глазированный сырок","Халва подсолнечная":"халва",
+"Сгущённое молоко":"сгущёнка","Молочный шоколад":"шоколад","Торт бисквитный":"торт пирожное",
+"Кофе с молоком":"латте капучино раф","Кофе чёрный":"эспрессо американо",
+"Апельсиновый сок":"сок","Вино красное":"вино","Пиво светлое":"пиво",
+"Персик / нектарин":"нектарин","Курага":"сухофрукты","Чернослив":"сухофрукты",
+"Финики":"сухофрукты","Изюм":"сухофрукты","Протеин сывороточный":"протеин",
+"Мандарин":"мандарины","Апельсин":"цитрус","Виноград":"кишмиш"};
+function mk(a){const o={name:a[0],cat:a[1],portion:a[17]||CATP[a[1]]||100,alt:ALIAS[a[0]]||""};KEYS.forEach((k,i)=>o[k]=a[i+2]);return o}
+let FOODS=DB.map(mk);
+</script>
+<script>
+const NUTS=[
+ {k:"fib",n:"Клетчатка",s:"клетчатка",u:"г",d:0},
+ {k:"fe", n:"Железо",s:"железо",u:"мг",d:1},
+ {k:"ca", n:"Кальций",s:"кальций",u:"мг",d:0},
+ {k:"mg", n:"Магний",s:"магний",u:"мг",d:0},
+ {k:"k",  n:"Калий",s:"калий",u:"мг",d:0},
+ {k:"zn", n:"Цинк",s:"цинк",u:"мг",d:1},
+ {k:"vc", n:"Витамин C",s:"витамин C",u:"мг",d:0},
+ {k:"vd", n:"Витамин D",s:"витамин D",u:"мкг",d:1},
+ {k:"b12",n:"Витамин B12",s:"B12",u:"мкг",d:1},
+ {k:"fol",n:"Фолиевая кислота",s:"фолиевая кислота",u:"мкг",d:0},
+ {k:"o3", n:"Омега-3",s:"омега-3",u:"г",d:1}
+];
+const WEIGHT={fib:1,fe:1.25,ca:1.05,mg:1,k:.8,zn:1,vc:.75,vd:.5,b12:.85,fol:1,o3:1.15,p:1.4};
+
+/* --- хранилище --- */
+const mem={};
+const STORE_OK=(()=>{try{localStorage.setItem("__n_test","1");
+  const v=localStorage.getItem("__n_test");localStorage.removeItem("__n_test");return v==="1"}catch(e){return false}})();
+const store={
+  get(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):(k in mem?mem[k]:def)}catch(e){return k in mem?mem[k]:def}},
+  set(k,v){mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+const $=s=>document.querySelector(s);
+const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const MON=["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
+const DOW=["вс","пн","вт","ср","чт","пт","сб"];
+
+let profile=Object.assign({sex:"f",age:35,hgt:168,wgt:60,act:1.375,goal:1,manual:null},store.get("norma_profile",{}));
+let custom=store.get("norma_custom",[]);
+let days=store.get("norma_days",{});
+let recent=store.get("norma_recent",[]);
+let cur=iso(new Date());
+let picked=null, sIdx=-1;
+
+function allFoods(){return FOODS.concat(custom.map(c=>Object.assign({portion:100,cat:"other"},c)))}
+
+/* --- цели --- */
+function targets(){
+  const pr=profile, w=+pr.wgt||60;
+  const bmr=10*w+6.25*(+pr.hgt||168)-5*(+pr.age||35)+(pr.sex==="m"?5:-161);
+  const kcal=Math.round(pr.manual?+pr.manual:bmr*(+pr.act)*(+pr.goal)/10)*10;
+  const p=Math.round(w*(pr.goal<1?1.8:1.6));
+  const f=Math.round(w*0.9);
+  const c=Math.max(50,Math.round((kcal-p*4-f*9)/4));
+  const female=pr.sex==="f", old=+pr.age>50;
+  return {kcal,p,f,c,
+    fib:female?25:38, fe:female&&!old?18:8, ca:old?1200:1000,
+    mg:female?320:420, k:female?2600:3400, zn:female?8:11,
+    vc:female?75:90, vd:15, b12:2.4, fol:400, o3:female?1.1:1.6,
+    bmr:Math.round(bmr), tdee:Math.round(bmr*(+pr.act))};
+}
+function totals(){
+  const t={};KEYS.forEach(k=>t[k]=0);
+  (days[cur]||[]).forEach(e=>{const f=e.f;KEYS.forEach(k=>t[k]+=(f[k]||0)*e.g/100)});
+  return t;
+}
+const r1=(v,d)=>v>=100||d===0?Math.round(v):Math.round(v*10)/10;
+
+/* --- отрисовка --- */
+function render(){
+  const T=targets(), t=totals(), list=days[cur]||[];
+
+  $("#kcal-now").textContent=Math.round(t.kcal);
+  $("#kcal-goal").textContent=T.kcal;
+  const left=T.kcal-t.kcal;
+  $("#left-note").textContent=left>=0?"осталось "+Math.round(left)+" ккал":"перебор "+Math.round(-left)+" ккал";
+  const pctE=Math.min(100,t.kcal/T.kcal*100);
+  const eb=$("#ebar"); eb.classList.toggle("over",t.kcal>T.kcal*1.05);
+  eb.firstElementChild.style.width=pctE+"%";
+  $("#kcal-sub").innerHTML=list.length?("основа обмена <b>"+T.bmr+"</b> · расход около <b>"+T.tdee+"</b>"):"начни с первого продукта";
+
+  $("#macros").innerHTML=[["Белки","p"],["Жиры","f"],["Углев","c"]].map(([n,k])=>
+    '<div class="macro"><div class="lbl">'+n+'</div><div class="val">'+Math.round(t[k])+'<span>/'+T[k]+'</span></div>'+
+    '<div class="mbar"><i style="width:'+Math.min(100,t[k]/T[k]*100)+'%"></i></div></div>').join("");
+
+  $("#nuts").innerHTML=NUTS.map(o=>{
+    const v=t[o.k], g=T[o.k], p=v/g*100;
+    const s=p>=90?"s-ok":p>=55?"s-mid":"s-low";
+    return '<div class="nut"><div class="nm"><b>'+o.n+'</b> '+r1(v,o.d)+' / '+g+' '+o.u+'</div>'+
+      '<div class="track '+s+'"><i style="width:'+Math.min(100,p)+'%"></i></div>'+
+      '<div class="pct '+(p>=90?"s-ok":p<40?"s-low":"")+'">'+Math.round(p)+'%</div></div>';
+  }).join("");
+
+  $("#meal-count").textContent=list.length?list.length+" зап.":"";
+  $("#meals").innerHTML=list.length?list.map((e,i)=>
+    '<div class="meal"><div class="mn">'+esc(e.f.name)+'<i>'+e.g+' г</i></div>'+
+    '<div class="mk">'+Math.round(e.f.kcal*e.g/100)+' ккал</div>'+
+    '<button class="del" data-i="'+i+'" aria-label="Удалить">×</button></div>').join("")
+    : '<div class="empty">Пока пусто. Добавь первый продукт ниже.</div>';
+
+  $("#recent").innerHTML=recent.slice(0,8).map(n=>'<button class="chip" data-n="'+esc(n)+'">'+esc(n)+'</button>').join("");
+  $("#advice-slot").innerHTML=adviceHTML(T,t);
+  $("#calc-hint").textContent="Считаю по формуле Миффлина: обмен покоя "+T.bmr+" ккал, с активностью около "+T.tdee+
+    " ккал, цель — "+T.kcal+" ккал в день. Белки "+T.p+" г, жиры "+T.f+" г, углеводы "+T.c+" г.";
+  $("#storage-warn").innerHTML = STORE_OK ? "" :
+    '<div class="warn-bar"><b>Записи не сохраняются в этом браузере.</b> Всё, что добавишь, исчезнет при закрытии '+
+    'страницы. Обычно помогает открыть приложение в Safari или Chrome напрямую, а не внутри другого приложения. '+
+    'До этого пользуйся блоком «Резервная копия» внизу.</div>';
+  const bk=$("#backup"); if(bk&&document.activeElement!==bk)bk.value=JSON.stringify({days,profile,custom,recent});
+  $("#c-list").innerHTML=custom.map((c,i)=>'<button class="chip" data-del="'+i+'">'+esc(c.name)+' ×</button>').join("");
+}
+function esc(s){return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+
+/* --- чем добрать --- */
+const SHORT={p:"белок"};
+NUTS.forEach(o=>SHORT[o.k]=o.s);
+const NO_ADVICE={dish:1,alco:1,drink:1,sweet:1};
+const RARE={"Печень куриная":1,"Печень говяжья":1,"Печень трески консерв.":1,"Икра красная":1,"Мидии":1};
+
+function jitter(name){ // лёгкая ротация: близкие по пользе варианты меняются день ото дня
+  let s=0; const str=cur+name;
+  for(let i=0;i<str.length;i++)s=(s*31+str.charCodeAt(i))%9973;
+  return 0.92+(s%100)/100*0.16;
+}
+
+function pickFoods(rem,budget,T){
+  const foods=allFoods().filter(f=>!NO_ADVICE[f.cat]), picks=[], usedCat={};
+  let guard=0;
+  while(picks.length<4 && guard++<12){
+    const prio=Object.keys(rem).filter(k=>rem[k]>0.12)
+      .sort((a,b)=>rem[b]*(WEIGHT[b]||1)-rem[a]*(WEIGHT[a]||1));
+    if(!prio.length)break;
+    const focus=picks.length<3?prio[0]:null;
+    let best=null;
+    for(const f of foods){
+      if(usedCat[f.cat]&&f.cat!=="veg")continue;
+      if(picks.some(p=>p.f.name===f.name))continue;
+      let gram=f.portion, kc=f.kcal*gram/100;
+      if(kc>budget*0.9){gram=Math.max(5,Math.round(budget*0.9/f.kcal*100/5)*5);kc=f.kcal*gram/100}
+      if(gram<3||kc<5)continue;
+      let sc=0; const parts=[];
+      for(const k in rem){
+        if(rem[k]<=0.02)continue;
+        const gain=Math.min((f[k]||0)*gram/100/T[k],rem[k]);
+        if(gain>0.02){sc+=gain*(WEIGHT[k]||1);parts.push([k,gain])}
+      }
+      if(focus){
+        const fg=parts.find(x=>x[0]===focus);
+        if(!fg||fg[1]<Math.min(0.15,rem[focus]*0.4))continue;
+        sc+=fg[1]*2;
+      }
+      if(sc<=0)continue;
+      const eff=sc/(1+kc/Math.max(140,budget))*jitter(f.name)*(RARE[f.name]?0.55:1);
+      if(!best||eff>best.eff)best={f,gram,kc,eff,parts:parts.sort((a,b)=>b[1]-a[1])};
+    }
+    if(!best){ if(focus){rem[focus]=0;continue} break }
+    best.parts.forEach(([k,v])=>rem[k]=Math.max(0,rem[k]-v));
+    usedCat[best.f.cat]=1;
+    picks.push(best);
+  }
+  return picks;
+}
+
+function adviceHTML(T,t){
+  const def={}; let anyDef=false;
+  ["p"].concat(NUTS.map(o=>o.k)).forEach(k=>{
+    const d=1-t[k]/T[k]; if(d>0.12){def[k]=Math.min(1,d);anyDef=true}
+  });
+  if(!anyDef){
+    return '<div class="advice"><h2>Чем добрать</h2><p class="lead" style="margin:0">'+
+      'Всё закрыто: белок, витамины и минералы на норме. День собран полностью.</p></div>';
+  }
+  const left=T.kcal-t.kcal;
+  const budget=left>150?left:250;
+  const short=Object.keys(def).sort((a,b)=>def[b]*(WEIGHT[b]||1)-def[a]*(WEIGHT[a]||1))
+    .slice(0,3).map(k=>SHORT[k]);
+  const picks=pickFoods(Object.assign({},def),budget,T);
+
+  const rows=picks.map(s=>
+    '<div class="tip"><div class="amt">'+s.gram+' г</div><div class="tn"><b>'+esc(s.f.name)+'</b>'+
+    '<i>'+s.parts.slice(0,3).map(([k,v])=>SHORT[k]+" +"+Math.round(v*100)+"%").join(", ")+
+    ' · '+Math.round(s.kc)+' ккал</i></div>'+
+    '<button class="add" data-tip="'+esc(s.f.name)+'|'+s.gram+'">+</button></div>').join("");
+
+  const lead=picks.length
+    ? "Не хватает: "+short.join(", ")+". Выбери одно-два — "+
+      (left>150?"на сегодня осталось "+Math.round(left)+" ккал.":"калории на сегодня уже выбраны, так что это скорее план на завтра.")
+    : "Не хватает: "+short.join(", ")+", но подходящих продуктов в списке нет. Добавь свой продукт или перенеси недобор на завтра.";
+
+  let note="";
+  if(def.vd>0.5)note+="Витамин D едой почти не добрать — его дают только жирная рыба и печень трески. Если солнца мало, про добавку стоит спросить у врача. ";
+  if(def.fe>0.4)note+="Железо из растений усваивается хуже: ешь его вместе с витамином C — перец, киви, зелень. ";
+  if(def.ca>0.4)note+="Кальций усваивается лучше небольшими порциями в разные приёмы пищи, чем всё разом. ";
+
+  return '<div class="advice"><h2>Чем добрать</h2><p class="lead">'+lead+'</p>'+rows+
+    (note?'<p class="foot-note">'+note+'</p>':'')+'</div>';
+}
+
+/* --- поиск --- */
+function search(q){
+  q=q.trim().toLowerCase(); if(!q)return [];
+  const all=allFoods();
+  const st=all.filter(f=>f.name.toLowerCase().startsWith(q));
+  const inc=all.filter(f=>!f.name.toLowerCase().startsWith(q)&&f.name.toLowerCase().includes(q));
+  const alt=all.filter(f=>!f.name.toLowerCase().includes(q)&&(f.alt||"").includes(q));
+  return st.concat(inc,alt).slice(0,9);
+}
+function showSugg(){
+  const list=search($("#q").value); sIdx=-1;
+  const box=$("#sugg");
+  if(!list.length){box.hidden=true;box.innerHTML="";return}
+  box.innerHTML=list.map(f=>'<div data-n="'+esc(f.name)+'">'+esc(f.name)+'<span>'+Math.round(f.kcal)+' ккал/100г</span></div>').join("");
+  box.hidden=false;
+}
+function choose(name){
+  const f=allFoods().find(x=>x.name===name); if(!f)return;
+  picked=f; $("#q").value=f.name; $("#gr").value=f.portion; $("#sugg").hidden=true;
+}
+function addFood(name,gram){
+  const f=allFoods().find(x=>x.name===(name||$("#q").value.trim()))||picked;
+  const g=Math.max(1,Math.round(+(gram||$("#gr").value)||0));
+  if(!f||!g){$("#q").focus();return}
+  (days[cur]=days[cur]||[]).push({f:Object.assign({},f),g});
+  recent=[f.name].concat(recent.filter(n=>n!==f.name)).slice(0,12);
+  store.set("norma_days",days); store.set("norma_recent",recent);
+  touch(cur); scheduleSave();
+  picked=null; $("#q").value=""; $("#gr").value=100; $("#sugg").hidden=true;
+  render();
+}
+
+/* --- дата --- */
+function shift(n){
+  const d=new Date(cur+"T12:00:00"); d.setDate(d.getDate()+n);
+  if(d>new Date()&&n>0)return;
+  cur=iso(d); label(); render();
+}
+function label(){
+  const d=new Date(cur+"T12:00:00"), td=iso(new Date());
+  const y=new Date();y.setDate(y.getDate()-1);
+  $("#dlabel").textContent = cur===td?"сегодня" : cur===iso(y)?"вчера" : d.getDate()+" "+MON[d.getMonth()]+", "+DOW[d.getDay()];
+  $("#next").style.visibility = cur===td?"hidden":"visible";
+}
+
+/* --- события --- */
+$("#q").addEventListener("input",showSugg);
+$("#q").addEventListener("focus",showSugg);
+$("#q").addEventListener("keydown",e=>{
+  const items=[...$("#sugg").querySelectorAll("div")];
+  if(e.key==="ArrowDown"||e.key==="ArrowUp"){
+    e.preventDefault(); if(!items.length)return;
+    sIdx=(sIdx+(e.key==="ArrowDown"?1:-1)+items.length)%items.length;
+    items.forEach((el,i)=>el.classList.toggle("on",i===sIdx));
+    items[sIdx].scrollIntoView({block:"nearest"});
+  } else if(e.key==="Enter"){
+    e.preventDefault();
+    if(sIdx>=0&&items[sIdx])choose(items[sIdx].dataset.n);
+    else if(items.length&&!picked)choose(items[0].dataset.n);
+    else addFood();
+  } else if(e.key==="Escape"){$("#sugg").hidden=true}
+});
+$("#sugg").addEventListener("click",e=>{const d=e.target.closest("div[data-n]");if(d)choose(d.dataset.n)});
+document.addEventListener("click",e=>{if(!e.target.closest(".f"))$("#sugg").hidden=true});
+$("#add").addEventListener("click",()=>addFood());
+$("#gr").addEventListener("keydown",e=>{if(e.key==="Enter")addFood()});
+$("#meals").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-i]"); if(!b)return;
+  days[cur].splice(+b.dataset.i,1); store.set("norma_days",days);
+  touch(cur); scheduleSave(); render();
+});
+$("#recent").addEventListener("click",e=>{const b=e.target.closest("button[data-n]");if(b)choose(b.dataset.n)});
+$("#advice-slot").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-tip]"); if(!b)return;
+  const [n,g]=b.dataset.tip.split("|"); addFood(n,g);
+});
+$("#prev").addEventListener("click",()=>shift(-1));
+$("#next").addEventListener("click",()=>shift(1));
+
+$("#sex").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-v]"); if(!b)return;
+  profile.sex=b.dataset.v;
+  [...$("#sex").children].forEach(x=>x.setAttribute("aria-pressed",x===b));
+  saveProfile();
+});
+["age","hgt","wgt","act","goal","manual"].forEach(id=>{
+  $("#"+id).addEventListener("input",()=>{
+    profile[id]= id==="manual" ? ($("#manual").value||null) : $("#"+id).value;
+    saveProfile();
+  });
+});
+function saveProfile(){store.set("norma_profile",profile);touchMeta();scheduleSave();render()}
+
+$("#c-save").addEventListener("click",()=>{
+  const n=$("#c-name").value.trim(); if(!n)return $("#c-name").focus();
+  const num=id=>+$("#"+id).value||0;
+  const o={name:n,kcal:num("c-kcal"),p:num("c-p"),f:num("c-f"),c:num("c-c"),fib:num("c-fib"),
+    fe:0,ca:num("c-ca"),mg:0,k:0,zn:0,vc:0,vd:0,b12:0,fol:0,o3:0};
+  custom=custom.filter(x=>x.name!==n).concat([o]);
+  store.set("norma_custom",custom); touchMeta(); scheduleSave();
+  ["c-name","c-kcal","c-p","c-f","c-c","c-fib","c-ca"].forEach(id=>$("#"+id).value="");
+  render();
+});
+$("#c-list").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-del]"); if(!b)return;
+  custom.splice(+b.dataset.del,1); store.set("norma_custom",custom);
+  touchMeta(); scheduleSave(); render();
+});
+
+/* --- резервная копия --- */
+function bmsg(s){const m=$("#b-msg"); m.textContent=s; setTimeout(()=>{m.textContent=""},2600)}
+$("#b-copy").addEventListener("click",()=>{
+  const ta=$("#backup"); ta.select();
+  const done=()=>bmsg("Скопировано");
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(ta.value).then(done,()=>bmsg("Выдели текст и скопируй вручную"));
+  else bmsg("Выдели текст и скопируй вручную");
+});
+$("#b-restore").addEventListener("click",()=>{
+  let d; try{d=JSON.parse($("#backup").value)}catch(e){return bmsg("Текст не похож на копию")}
+  if(!d||typeof d!=="object"||!d.days)return bmsg("Текст не похож на копию");
+  days=d.days||{}; profile=Object.assign(profile,d.profile||{}); custom=d.custom||[]; recent=d.recent||[];
+  store.set("norma_days",days); store.set("norma_profile",profile);
+  store.set("norma_custom",custom); store.set("norma_recent",recent);
+  Object.keys(days).forEach(touch); touchMeta(); scheduleSave(400);
+  ["age","hgt","wgt","act","goal"].forEach(id=>{if(profile[id]!=null)$("#"+id).value=profile[id]});
+  render(); bmsg("Восстановлено");
+});
+
+/* --- облако: записи хранятся на сервере, а не только в браузере --- */
+const CLOUD_FILE="data/norma.json";
+let stamps=store.get("norma_stamps",{});
+let cloud=null, cloudState="", saveTimer=0, needSave=false;
+
+function touch(day){stamps[day]=Date.now();store.set("norma_stamps",stamps)}
+function touchMeta(){stamps._meta=Date.now();store.set("norma_stamps",stamps)}
+
+function syncNote(){
+  const el=$("#sync-line"); if(!el)return;
+  const txt={saving:"Сохраняю…",ok:"Записи сохранены на сервере",off:"Записи только в этом браузере"}[cloudState]||"";
+  el.textContent=txt;
+  el.className="sync"+(cloudState==="off"?" off":cloudState==="saving"?" wait":"");
+  el.hidden=!txt;
+}
+
+function scheduleSave(ms){
+  needSave=true;
+  if(!cloud){syncNote();return}
+  clearTimeout(saveTimer);
+  cloudState="saving"; syncNote();
+  saveTimer=setTimeout(doSave, ms==null?2000:ms);
+}
+
+function doSave(){
+  if(!cloud||!needSave)return;
+  const body=JSON.stringify({v:1,t:Date.now(),days,profile,custom,recent,stamps});
+  const again=ms=>{clearTimeout(saveTimer);saveTimer=setTimeout(doSave,ms);cloudState="saving";syncNote()};
+  return cloud.publish({[CLOUD_FILE]:body}).then(()=>{
+    needSave=false; cloudState="ok"; syncNote();
+  },err=>{
+    const c=err&&err.code;
+    if(c==="conflict"){cloudState="saving";syncNote()}        /* страница сама переедет на свежую версию */
+    else if(c==="rate_limited")again(20000);
+    else if(c==="upstream_error")again(6000);
+    else {cloud=null;cloudState="off";syncNote()}
+  });
+}
+
+/* слить то, что на сервере, с тем, что в браузере: по каждому дню побеждает более свежая правка */
+function mergeRemote(r){
+  let localNewer=false;
+  const rs=r.stamps||{}, rd=r.days||{};
+  Object.keys(rd).forEach(d=>{
+    const mine=stamps[d]||0, theirs=rs[d]||0;
+    if(!(d in days)||theirs>mine){days[d]=rd[d];stamps[d]=theirs}
+    else if(mine>theirs)localNewer=true;
+  });
+  Object.keys(days).forEach(d=>{if(!(d in rd))localNewer=true});
+  if((rs._meta||0)>(stamps._meta||0)){
+    profile=Object.assign(profile,r.profile||{});
+    if(r.custom)custom=r.custom;
+    if(r.recent)recent=r.recent;
+    stamps._meta=rs._meta;
+  } else if((stamps._meta||0)>(rs._meta||0))localNewer=true;
+  return localNewer;
+}
+
+function cloudInit(){
+  const api=(window.claude&&typeof claude.use==="function")?claude.use("artifact").catch(()=>null):Promise.resolve(null);
+  const file=fetch(CLOUD_FILE,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);
+  return Promise.all([api,file]).then(([a,remote])=>{
+    cloud=a||null;
+    let dirty=false;
+    if(remote&&remote.v){
+      dirty=mergeRemote(remote);
+      store.set("norma_days",days); store.set("norma_profile",profile);
+      store.set("norma_custom",custom); store.set("norma_recent",recent); store.set("norma_stamps",stamps);
+      $("#sex").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===profile.sex));
+      ["age","hgt","wgt","act","goal"].forEach(id=>{if(profile[id]!=null)$("#"+id).value=profile[id]});
+      $("#manual").value=profile.manual||"";
+      render();
+    } else if(Object.keys(days).length||custom.length){
+      dirty=true;   /* первый запуск после переезда: то, что в браузере, уходит на сервер */
+    }
+    if(!cloud){cloudState="off";syncNote();return}
+    cloudState="ok";
+    if(dirty)scheduleSave(600); else syncNote();
+  });
+}
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden&&needSave&&cloud){clearTimeout(saveTimer);doSave()}
+});
+
+/* --- старт --- */
+$("#sex").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===profile.sex));
+["age","hgt","wgt","act","goal"].forEach(id=>{if(profile[id]!=null)$("#"+id).value=profile[id]});
+if(profile.manual)$("#manual").value=profile.manual;
+label(); render(); cloudInit();
+</script>
