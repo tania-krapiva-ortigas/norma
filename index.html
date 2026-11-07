@@ -190,6 +190,9 @@ textarea{width:100%;min-height:96px;background:var(--raise);border:1px solid var
 .qbtn[hidden]{display:none}
 .sugg div.ai{color:var(--accent);font-size:14px}
 .sugg div.ai span{color:var(--accent2)}
+.sugg div.wait,.sugg div.muted{color:var(--ink3);font-size:14px;justify-content:flex-start;align-items:center;cursor:default}
+.sugg div.wait:hover,.sugg div.muted:hover{background:none}
+.sugg div.wait .spin{width:13px;height:13px}
 
 /* --- нижняя панель --- */
 .sheet{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(15,18,12,.45)}
@@ -267,7 +270,7 @@ textarea{width:100%;min-height:96px;background:var(--raise);border:1px solid var
     <div id="meals"></div>
     <div class="addrow mt">
       <div class="f">
-        <input type="text" id="q" placeholder="Что съела? Например: творог" autocomplete="off" />
+        <input type="text" id="q" placeholder="Что съела? Например: паштет или «2 яйца, тост»" autocomplete="off" />
         <div class="sugg" id="sugg" hidden></div>
       </div>
       <input type="number" id="gr" value="100" min="1" max="3000" step="10" aria-label="Граммы" />
@@ -279,8 +282,6 @@ textarea{width:100%;min-height:96px;background:var(--raise);border:1px solid var
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M7 8v8M10 8v8M13 8v8M15.5 8v8M18 8v8"/></svg>Штрихкод</button>
       <button class="qbtn" id="qa-food" hidden aria-label="Сфотографировать еду">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Фото еды</button>
-      <button class="qbtn" id="qa-text" hidden aria-label="Описать словами">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>Словами</button>
     </div>
     <input type="file" id="f-scan" accept="image/*" capture="environment" hidden />
     <input type="file" id="f-food" accept="image/*" hidden />
@@ -849,19 +850,68 @@ function search(q){
   const alt=all.filter(f=>!f.name.toLowerCase().includes(q)&&((f.alt||"").includes(q)||(f.bc&&f.bc===q)));
   return st.concat(inc,alt).slice(0,9);
 }
+let aiSugg={q:"",state:"",items:[]}, aiTimer=0, aiPendQ="", aiSCtl=null;
+const aiMemo=new Map();
+const isMulti=q=>/[,;+\n]|\sи\s|\sс\s\d/.test(q);
 function showSugg(){
   const q=$("#q").value.trim(), list=search(q); sIdx=-1;
   const box=$("#sugg");
+  const want=!!AI&&q.length>=3&&!/^\d+$/.test(q);
   const exact=list.some(f=>f.name.toLowerCase()===q.toLowerCase());
-  const ai=!!AI&&q.length>=3&&!exact&&!/^\d+$/.test(q);
-  if(!list.length&&!ai){box.hidden=true;box.innerHTML="";return}
-  box.innerHTML=list.map(f=>'<div data-n="'+esc(f.name)+'">'+esc(f.name)+'<span>'+Math.round(f.kcal)+' ккал/100г</span></div>').join("")+
-    (ai?'<div class="ai" data-ai="'+esc(q)+'">'+(list.length?'Нет нужного? ':'')+'Оценить «'+esc(q)+'» с Claude<span>✦</span></div>':"");
+  let extra="";
+  if(want&&isMulti(q)){
+    extra='<div class="it ai" data-multi="1">Посчитать всё вместе<span>✦ несколько продуктов</span></div>';
+  } else if(want&&!exact&&list.length<4){
+    const memo=aiMemo.get(q), names=new Set(list.map(f=>f.name.toLowerCase()));
+    if(memo){
+      const items=memo.filter(f=>!names.has(f.name.toLowerCase()));
+      extra=items.length?items.map(f=>'<div class="it ai" data-aii="'+memo.indexOf(f)+'">'+esc(f.name)+
+        '<span>✦ '+Math.round(f.kcal)+' ккал/100г</span></div>').join("")
+        :(list.length?"":'<div class="muted">Claude не нашёл такой еды — проверь название</div>');
+    } else if(aiSugg.q===q&&aiSugg.state==="err"){
+      extra='<div class="muted">'+esc(aiSugg.msg)+'</div>';
+    } else {
+      extra='<div class="wait"><span class="spin"></span>Ищу «'+esc(q)+'» с Claude…</div>';
+      scheduleAI(q);
+    }
+  }
+  if(!list.length&&!extra){box.hidden=true;box.innerHTML="";return}
+  box.innerHTML=list.map(f=>'<div class="it" data-n="'+esc(f.name)+'">'+esc(f.name)+'<span>'+Math.round(f.kcal)+' ккал/100г</span></div>').join("")+extra;
   box.hidden=false;
+}
+function scheduleAI(q){
+  if(aiPendQ===q)return;
+  aiPendQ=q; clearTimeout(aiTimer);
+  aiTimer=setTimeout(()=>runAI(q),750);
+}
+function runAI(q){
+  if($("#q").value.trim()!==q){aiPendQ="";return}
+  if(aiSCtl)aiSCtl.abort();
+  const ctl=aiSCtl=new AbortController();
+  AI.json("Пользователь ищет продукт в дневнике питания по запросу «"+q+"». Предложи до 3 самых вероятных вариантов продукта или блюда "+
+    "(если запрос неоднозначный — разные виды, например «паштет» → печёночный куриный, из говяжьей печени, рыбный; если однозначный — один вариант). "+
+    "Состав — средний справочный, в готовом к употреблению виде. "+UNITS+" "+CAT_HINT+" portion — типичная порция в граммах. "+
+    "Ответь только JSON: {\"items\":[{\"name\":\"короткое название по-русски\",\"cat\":\"meat\",\"portion\":40,"+PER100+"}]}. "+
+    "Если это не еда и не напиток — {\"items\":[]}.",{modelTier:"quick",signal:ctl.signal}).then(r=>{
+      const items=(Array.isArray(r&&r.items)?r.items:[]).filter(x=>x&&x.name&&x.per100).slice(0,3)
+        .map(x=>Object.assign(normFood(x),{src:"ai"}));
+      aiMemo.set(q,items); if(aiPendQ===q)aiPendQ="";
+      if(document.activeElement===$("#q")&&$("#q").value.trim()===q)showSugg();
+    },e=>{
+      if(aiPendQ===q)aiPendQ="";
+      if(e&&e.code==="cancelled")return;
+      aiSugg={q,state:"err",msg:aiErr(e)};
+      if($("#q").value.trim()===q)showSugg();
+    });
 }
 function pickSugg(el){
   if(!el)return;
-  if(el.dataset.ai!=null)aiLookup(el.dataset.ai); else choose(el.dataset.n);
+  const q=$("#q").value.trim();
+  if(el.dataset.multi!=null){$("#sugg").hidden=true;$("#q").blur();
+    plateRequest(platePrompt("Пользователь описал словами, что съел: «"+q.slice(0,1500)+"».",""),null,"Что съедено");}
+  else if(el.dataset.aii!=null){const f=(aiMemo.get(q)||[])[+el.dataset.aii];if(f){picked=Object.assign({},f);
+    $("#q").value=f.name;$("#gr").value=f.portion;$("#sugg").hidden=true}}
+  else choose(el.dataset.n);
 }
 function choose(name){
   const f=allFoods().find(x=>x.name===name); if(!f)return;
@@ -873,6 +923,7 @@ function addFood(name,gram){
   const g=Math.max(1,Math.round(+(gram||$("#gr").value)||0));
   if(!f&&!name&&AI&&typed.length>=2){aiLookup(typed);return}
   if(!f||!g){$("#q").focus();return}
+  if(f.src==="ai"&&!custom.some(c=>c.name===f.name)){const c=Object.assign({},f);delete c.alt;saveCustom(c)}
   (days[cur]=days[cur]||[]).push({f:Object.assign({},f),g});
   recent=[f.name].concat(recent.filter(n=>n!==f.name)).slice(0,12);
   store.set("norma_days",days); store.set("norma_recent",recent);
@@ -898,7 +949,7 @@ function label(){
 $("#q").addEventListener("input",showSugg);
 $("#q").addEventListener("focus",showSugg);
 $("#q").addEventListener("keydown",e=>{
-  const items=[...$("#sugg").querySelectorAll("div")];
+  const items=[...$("#sugg").querySelectorAll("div.it")];
   if(e.key==="ArrowDown"||e.key==="ArrowUp"){
     e.preventDefault(); if(!items.length)return;
     sIdx=(sIdx+(e.key==="ArrowDown"?1:-1)+items.length)%items.length;
@@ -911,7 +962,7 @@ $("#q").addEventListener("keydown",e=>{
     else addFood();
   } else if(e.key==="Escape"){$("#sugg").hidden=true}
 });
-$("#sugg").addEventListener("click",e=>{pickSugg(e.target.closest("div[data-n],div[data-ai]"))});
+$("#sugg").addEventListener("click",e=>{pickSugg(e.target.closest("div.it"))});
 document.addEventListener("click",e=>{if(!e.target.closest(".f"))$("#sugg").hidden=true});
 $("#add").addEventListener("click",()=>addFood());
 $("#gr").addEventListener("keydown",e=>{if(e.key==="Enter")addFood()});
@@ -1079,7 +1130,7 @@ function aiInit(){
   }).catch(()=>{}).then(quickUI);
 }
 function quickUI(){
-  $("#qa-food").hidden=!AI_IMG; $("#qa-text").hidden=!AI; $("#c-quick").hidden=!AI_IMG;
+  $("#qa-food").hidden=!AI_IMG; $("#c-quick").hidden=!AI_IMG;
 }
 function aiErr(e){
   const c=e&&e.code;
@@ -1214,7 +1265,7 @@ function rvTotal(){
 function rvAdd(){
   const on=review.filter(x=>x.on&&x.g>0); if(!on.length)return;
   on.forEach(x=>addEntry(x.f,x.g,x.db));
-  scheduleSave(); closeSheet(); render();
+  scheduleSave(); closeSheet(); $("#q").value=""; render();
 }
 
 /* --- запросы к Claude --- */
@@ -1270,21 +1321,6 @@ function foodGo(){
   if(!pending||!pending.canvas)return;
   const {canvas,thumb}=pending, hint=($("#ph-hint").value||"").trim();
   toJpeg(canvas).then(b=>plateRequest(platePrompt("На фото — еда, которую пользователь съел или собирается съесть.",hint),[b],"Что на фото",thumb));
-}
-
-/* описание словами */
-function textSheet(){
-  openSheet("Опиши, что съела",
-    '<textarea id="tx-in" style="font-family:var(--body);font-size:16px;min-height:90px" '+
-    'placeholder="Например: 2 яйца, тост с маслом, капучино без сахара"></textarea>'+
-    '<div class="sheet-foot"><button class="btn" data-act="text-go">Посчитать</button>'+
-    '<button class="btn ghost" data-act="close">Отмена</button></div>'+
-    '<p class="hint">Можно с граммами или без — тогда возьму обычные порции.</p>');
-  setTimeout(()=>{const t=$("#tx-in");if(t)t.focus()},50);
-}
-function textGo(){
-  const t=($("#tx-in").value||"").trim().slice(0,1500); if(!t)return $("#tx-in").focus();
-  plateRequest(platePrompt("Пользователь описал словами, что съел: «"+t+"».",""),null,"Что съедено");
 }
 
 /* фото этикетки / упаковки */
@@ -1437,7 +1473,6 @@ function findBarcode(code){
 /* --- события панели --- */
 $("#qa-scan").addEventListener("click",()=>$("#f-scan").click());
 $("#qa-food").addEventListener("click",()=>$("#f-food").click());
-$("#qa-text").addEventListener("click",textSheet);
 $("#c-label").addEventListener("click",()=>{pendingBC=null;$("#f-label").click()});
 [["#f-scan",onScanFile],["#f-food",onFoodFile],["#f-label",onLabelFile]].forEach(([id,fn])=>{
   $(id).addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];e.target.value="";if(f)fn(f)});
@@ -1450,7 +1485,6 @@ $("#sheet").addEventListener("click",e=>{
   else if(a==="pc-add")pcAdd();
   else if(a==="rv-add")rvAdd();
   else if(a==="food-go")foodGo();
-  else if(a==="text-go")textGo();
   else if(a==="scan")$("#f-scan").click();
   else if(a==="label")$("#f-label").click();
   else if(a==="bc-find"){const v=$("#bc-in").value;if(v.trim())findBarcode(v);else $("#bc-in").focus()}
