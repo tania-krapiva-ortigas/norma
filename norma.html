@@ -12,7 +12,7 @@
   --r:10px;
 }
 @media (prefers-color-scheme:dark){
-  :root{
+  :root:not([data-theme="light"]){ color-scheme:dark;
     --ground:#15180F; --surface:#1D2017; --surface2:#272B1F; --raise:#22261B;
     --ink:#EAEDE1; --ink2:#9DA391; --ink3:#7A806E;
       --line:#313626; --line2:#3E4431;
@@ -20,7 +20,7 @@
     --good:#8CB87C; --warn:#D6A455; --low:#D9857A;
   }
 }
-:root[data-theme="dark"]{
+:root[data-theme="dark"]{ color-scheme:dark;
   --ground:#15180F; --surface:#1D2017; --surface2:#272B1F; --raise:#22261B;
   --ink:#EAEDE1; --ink2:#9DA391; --ink3:#7A806E;
   --line:#313626; --line2:#3E4431;
@@ -168,6 +168,45 @@ details.card[open] > summary{margin-bottom:16px}
 textarea{width:100%;min-height:96px;background:var(--raise);border:1px solid var(--line2);border-radius:8px;
   padding:10px 12px;font-family:var(--mono);font-size:12px;color:var(--ink);resize:vertical}
 .row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+/* --- быстрые способы добавить --- */
+.quick{display:flex;gap:8px;margin-top:12px}
+.qbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--raise);border:1px solid var(--line2);
+  border-radius:var(--r);padding:11px 6px 9px;font-size:13px;color:var(--ink2);line-height:1.2;text-align:center}
+.qbtn svg{width:22px;height:22px;stroke:var(--accent);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.qbtn:hover{border-color:var(--accent2);color:var(--ink)}
+.qbtn[hidden]{display:none}
+.sugg div.ai{color:var(--accent);font-size:14px}
+.sugg div.ai span{color:var(--accent2)}
+
+/* --- нижняя панель --- */
+.sheet{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(15,18,12,.45)}
+.sheet[hidden]{display:none}
+.sheet .pane{background:var(--surface);width:100%;max-width:620px;max-height:88vh;overflow-y:auto;
+  border-radius:16px 16px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom))}
+.sheet .sh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.sheet .sh h3{font-family:var(--display);font-size:21px;line-height:1.2}
+.sheet .x{background:none;border:0;font-size:24px;line-height:1;color:var(--ink3);padding:2px 6px}
+.busy{display:flex;align-items:center;gap:10px;color:var(--ink2);font-size:14px;padding:8px 0}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--line2);border-top-color:var(--accent);animation:spin .8s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.msg{font-size:14px;color:var(--ink2);line-height:1.5;margin:0 0 12px}
+.msg.bad{color:var(--low)}
+.thumb{width:100%;max-height:190px;object-fit:cover;border-radius:8px;margin-bottom:12px;display:block}
+.src{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:0 0 10px}
+.rv{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.rv input[type=checkbox]{width:19px;height:19px;accent-color:var(--accent);flex:none;margin:0}
+.rv .rn{flex:1;font-size:15px;line-height:1.25;min-width:0}
+.rv .rn i{display:block;font-style:normal;font-size:12px;color:var(--ink3);margin-top:2px;font-variant-numeric:tabular-nums}
+.rv input[type=number]{width:70px;padding:8px 4px}
+.u{font-size:12px;color:var(--ink3)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grid4 input[type=number]{width:100%;padding:9px 4px}
+.sheet-foot{display:flex;gap:8px;align-items:center;margin-top:16px;flex-wrap:wrap}
+.sheet-foot .grow{flex:1}
+.kc-out{font-family:var(--mono);font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.c-head{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.c-head[hidden]{display:none}
+
 @media (max-width:430px){
   .nut{grid-template-columns:1fr 84px 42px}
   .kcal{font-size:40px}
@@ -222,6 +261,17 @@ textarea{width:100%;min-height:96px;background:var(--raise);border:1px solid var
       <button class="btn" id="add">Добавить</button>
     </div>
     <div class="recent" id="recent"></div>
+    <div class="quick">
+      <button class="qbtn" id="qa-scan" aria-label="Сканировать штрихкод">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M7 8v8M10 8v8M13 8v8M15.5 8v8M18 8v8"/></svg>Штрихкод</button>
+      <button class="qbtn" id="qa-food" hidden aria-label="Сфотографировать еду">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Фото еды</button>
+      <button class="qbtn" id="qa-text" hidden aria-label="Описать словами">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>Словами</button>
+    </div>
+    <input type="file" id="f-scan" accept="image/*" capture="environment" hidden />
+    <input type="file" id="f-food" accept="image/*" hidden />
+    <input type="file" id="f-label" accept="image/*" hidden />
   </div>
 
   <div id="advice-slot"></div>
@@ -259,7 +309,11 @@ textarea{width:100%;min-height:96px;background:var(--raise);border:1px solid var
 
   <details class="card">
     <summary>Свой продукт</summary>
-    <p class="hint" style="margin-top:0">Если чего-то нет в списке — впиши с упаковки, на 100 г. Пустые поля — это ноль.</p>
+    <div class="c-head" id="c-quick" hidden>
+      <button class="btn ghost" id="c-label">Заполнить по фото этикетки</button>
+    </div>
+    <p class="hint" style="margin-top:0">Если чего-то нет в списке — впиши с упаковки, на 100 г. Пустые поля — это ноль.
+      Продукты, найденные по штрихкоду, этикетке или через Claude, тоже сохраняются здесь.</p>
     <div class="fld mt"><label for="c-name">Название</label><input type="text" id="c-name" placeholder="Йогурт «Название»" /></div>
     <div class="grid2 mt">
       <div class="fld"><label for="c-kcal">Ккал</label><input type="number" id="c-kcal" /></div>
@@ -288,8 +342,15 @@ textarea{width:100%;min-height:96px;background:var(--raise);border:1px solid var
 
   <p class="hint" style="text-align:center;padding:0 8px">
     Значения нутриентов — усреднённые справочные, для бытового контроля их достаточно,
-    для медицинских решений — нет.
+    для медицинских решений — нет. Оценки по фото и описанию — приблизительные.
   </p>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-t">
+  <div class="pane">
+    <div class="sh"><h3 id="sheet-t"></h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
+    <div id="sheet-b"></div>
+  </div>
 </div>
 <script>
 /* [название, категория, ккал, белок, жир, углеводы, клетчатка,
@@ -476,7 +537,42 @@ const DB=[
 ["Кофе чёрный","drink",2,0.1,0,0,0, 0.01,2,3,49,0.02, 0,0,0,0,0,200],
 ["Вино красное","alco",85,0.07,0,2.6,0, 0.46,8,12,127,0.14, 0,0,0,1,0,150],
 ["Пиво светлое","alco",43,0.5,0,3.6,0, 0.02,4,6,27,0.01, 0,0,0,6,0,330],
-["Апельсиновый сок","drink",45,0.7,0.2,10.4,0.2, 0.2,11,11,200,0.05, 50,0,0,30,0,200]
+["Апельсиновый сок","drink",45,0.7,0.2,10.4,0.2, 0.2,11,11,200,0.05, 50,0,0,30,0,200],
+["Паштет печёночный","meat",280,12,25,2.5,0, 6,40,13,150,2.8, 2,1.2,8,60,0.15,40],
+["Сыр плавленый","cheese",300,12,25,6,0, 0.3,550,25,150,2.5, 0,0.4,0.7,8,0.2,30],
+["Сыр бри / камамбер","cheese",334,21,28,0.5,0, 0.5,184,20,152,2.4, 0,0.6,1.65,65,0.3,30],
+["Ряженка 4%","dairy",67,2.8,4,4.2,0, 0.1,124,14,146,0.4, 0.3,0.1,0.4,7,0.03,250],
+["Йогурт фруктовый","dairy",95,3.5,2.5,15,0.3, 0.1,120,12,150,0.5, 1,0.05,0.3,8,0.01,125],
+["Сливки 10%","dairy",118,3,10,4,0, 0.1,90,10,120,0.4, 0.5,0.1,0.3,5,0.06,20],
+["Хлеб ржаной","bread",214,6.6,1.2,41,5.8, 2.5,35,40,200,1.2, 0,0,0,30,0.05,35],
+["Лаваш / тортилья","bread",275,9,1,56,2.2, 2.6,20,25,120,0.8, 0,0,0,60,0.02,50],
+["Ветчина свиная","meat",145,16,8,1.5,0, 0.8,10,20,290,1.8, 0,0.5,0.6,3,0.03,40],
+["Колбаса копчёная","meat",450,22,40,1,0, 1.5,10,20,350,3, 0,0.6,1.5,3,0.15,30],
+["Котлета куриная","dish",190,17,10,7,0.3, 1,20,20,220,1.2, 0.5,0.2,0.3,10,0.06,100],
+["Пюре картофельное","dish",106,2,4.2,15.5,1.3, 0.3,25,19,300,0.3, 6,0.1,0.1,9,0.02,200],
+["Вареники с картошкой","dish",150,4,3,26,1.5, 0.8,15,15,180,0.4, 3,0,0,15,0.03,200],
+["Голубцы","dish",105,6.5,5,9,1.5, 0.8,25,15,220,1.2, 12,0.1,0.5,25,0.04,250],
+["Суп куриный с лапшой","dish",45,3,1.3,5.5,0.4, 0.4,8,8,90,0.3, 0.3,0,0.1,7,0.01,300],
+["Манная каша на молоке","dish",98,3,3.2,15,0.2, 0.2,100,12,130,0.4, 0.3,0.05,0.3,5,0.02,250],
+["Пшённая каша","grain",119,3.5,1,23,1.3, 0.6,3,44,62,0.9, 0,0,0,19,0.02,200],
+["Кукуруза консервированная","veg",82,2.6,1.2,15,2, 0.4,4,19,180,0.5, 5,0,0,45,0.02,80],
+["Фасоль стручковая","veg",31,1.8,0.2,7,2.7, 1,37,25,211,0.24, 12,0,0,33,0.04,120],
+["Огурцы солёные","veg",13,0.8,0.1,2.5,1, 0.6,23,10,120,0.1, 1,0,0,1,0.01,60],
+["Абрикос","fruit",48,1.4,0.4,11,2, 0.4,13,10,259,0.2, 10,0,0,9,0,100],
+["Слива","fruit",46,0.7,0.3,11.4,1.4, 0.17,6,7,157,0.1, 9.5,0,0,5,0,100],
+["Вишня / черешня","fruit",63,1.1,0.2,16,2.1, 0.36,13,11,222,0.07, 7,0,0,4,0.03,100],
+["Ананас","fruit",50,0.5,0.1,13,1.4, 0.3,13,12,109,0.1, 48,0,0,18,0.02,150],
+["Грейпфрут","fruit",42,0.8,0.1,10.7,1.6, 0.08,22,9,135,0.07, 31,0,0,13,0,150],
+["Дыня","fruit",34,0.8,0.2,8,0.9, 0.2,9,12,267,0.18, 37,0,0,21,0.03,200],
+["Инжир свежий","fruit",74,0.75,0.3,19,2.9, 0.37,35,17,232,0.15, 2,0,0,6,0,60],
+["Лимон","fruit",29,1.1,0.3,9.3,2.8, 0.6,26,8,138,0.06, 53,0,0,11,0.03,20],
+["Майонез","oil",680,1,75,2.6,0, 0.3,8,1,20,0.1, 0,0.2,0.1,3,0.4,15],
+["Кетчуп","other",100,1.2,0.2,24,0.3, 0.4,15,13,280,0.2, 4,0,0,9,0.01,15],
+["Шоколадная паста","sweet",539,6.3,31,58,3.4, 2.4,108,60,407,1, 0,0,0,0,0.05,20],
+["Протеиновый батончик","other",360,30,11,33,6, 2.5,200,60,200,2, 0,0,0.6,40,0.1,50],
+["Чай без сахара","drink",1,0,0,0.3,0, 0,0,1,37,0, 0,0,0,5,0,250],
+["Сок яблочный","drink",46,0.1,0.1,11.3,0.2, 0.1,8,5,101,0.02, 1,0,0,0,0,200],
+["Кола / газировка","drink",42,0,0,10.6,0, 0,2,0,2,0, 0,0,0,0,0,330]
 ];
 const CATP={dish:200,alco:150,meat:120,fish:120,egg:55,dairy:150,cheese:30,grain:150,bread:35,legume:130,veg:100,fruit:130,nut:25,seed:15,oil:10,sweet:20,drink:200,other:50};
 const KEYS=["kcal","p","f","c","fib","fe","ca","mg","k","zn","vc","vd","b12","fol","o3"];
@@ -527,7 +623,17 @@ const ALIAS={
 "Апельсиновый сок":"сок","Вино красное":"вино","Пиво светлое":"пиво",
 "Персик / нектарин":"нектарин","Курага":"сухофрукты","Чернослив":"сухофрукты",
 "Финики":"сухофрукты","Изюм":"сухофрукты","Протеин сывороточный":"протеин",
-"Мандарин":"мандарины","Апельсин":"цитрус","Виноград":"кишмиш"};
+"Мандарин":"мандарины","Апельсин":"цитрус","Виноград":"кишмиш",
+"Паштет печёночный":"паштет печеночный печень","Сыр плавленый":"плавленый сырок дружба","Сыр бри / камамбер":"бри камамбер",
+"Ряженка 4%":"ряженка","Йогурт фруктовый":"йогурт сладкий","Хлеб ржаной":"черный хлеб чёрный",
+"Лаваш / тортилья":"лепёшка лепешка пита","Колбаса копчёная":"салями сервелат сырокопчёная копченая",
+"Ветчина свиная":"ветчина","Пюре картофельное":"картофельное пюре картошка",
+"Вареники с картошкой":"вареники","Суп куриный с лапшой":"куриный суп лапша бульон",
+"Пшённая каша":"пшено пшенная","Манная каша на молоке":"манка",
+"Кукуруза консервированная":"кукуруза","Фасоль стручковая":"стручковая","Огурцы солёные":"соленья маринованные огурец",
+"Вишня / черешня":"черешня","Инжир свежий":"инжир","Кетчуп":"соус томатный","Майонез":"соус",
+"Шоколадная паста":"нутелла nutella","Протеиновый батончик":"батончик","Чай без сахара":"чай зелёный",
+"Кола / газировка":"кола лимонад газировка","Сок яблочный":"сок"};
 function mk(a){const o={name:a[0],cat:a[1],portion:a[17]||CATP[a[1]]||100,alt:ALIAS[a[0]]||""};KEYS.forEach((k,i)=>o[k]=a[i+2]);return o}
 let FOODS=DB.map(mk);
 </script>
@@ -727,23 +833,32 @@ function search(q){
   const all=allFoods();
   const st=all.filter(f=>f.name.toLowerCase().startsWith(q));
   const inc=all.filter(f=>!f.name.toLowerCase().startsWith(q)&&f.name.toLowerCase().includes(q));
-  const alt=all.filter(f=>!f.name.toLowerCase().includes(q)&&(f.alt||"").includes(q));
+  const alt=all.filter(f=>!f.name.toLowerCase().includes(q)&&((f.alt||"").includes(q)||(f.bc&&f.bc===q)));
   return st.concat(inc,alt).slice(0,9);
 }
 function showSugg(){
-  const list=search($("#q").value); sIdx=-1;
+  const q=$("#q").value.trim(), list=search(q); sIdx=-1;
   const box=$("#sugg");
-  if(!list.length){box.hidden=true;box.innerHTML="";return}
-  box.innerHTML=list.map(f=>'<div data-n="'+esc(f.name)+'">'+esc(f.name)+'<span>'+Math.round(f.kcal)+' ккал/100г</span></div>').join("");
+  const exact=list.some(f=>f.name.toLowerCase()===q.toLowerCase());
+  const ai=!!AI&&q.length>=3&&!exact&&!/^\d+$/.test(q);
+  if(!list.length&&!ai){box.hidden=true;box.innerHTML="";return}
+  box.innerHTML=list.map(f=>'<div data-n="'+esc(f.name)+'">'+esc(f.name)+'<span>'+Math.round(f.kcal)+' ккал/100г</span></div>').join("")+
+    (ai?'<div class="ai" data-ai="'+esc(q)+'">'+(list.length?'Нет нужного? ':'')+'Оценить «'+esc(q)+'» с Claude<span>✦</span></div>':"");
   box.hidden=false;
+}
+function pickSugg(el){
+  if(!el)return;
+  if(el.dataset.ai!=null)aiLookup(el.dataset.ai); else choose(el.dataset.n);
 }
 function choose(name){
   const f=allFoods().find(x=>x.name===name); if(!f)return;
   picked=f; $("#q").value=f.name; $("#gr").value=f.portion; $("#sugg").hidden=true;
 }
 function addFood(name,gram){
-  const f=allFoods().find(x=>x.name===(name||$("#q").value.trim()))||picked;
+  const typed=$("#q").value.trim();
+  const f=allFoods().find(x=>x.name===(name||typed))||picked;
   const g=Math.max(1,Math.round(+(gram||$("#gr").value)||0));
+  if(!f&&!name&&AI&&typed.length>=2){aiLookup(typed);return}
   if(!f||!g){$("#q").focus();return}
   (days[cur]=days[cur]||[]).push({f:Object.assign({},f),g});
   recent=[f.name].concat(recent.filter(n=>n!==f.name)).slice(0,12);
@@ -778,12 +893,12 @@ $("#q").addEventListener("keydown",e=>{
     items[sIdx].scrollIntoView({block:"nearest"});
   } else if(e.key==="Enter"){
     e.preventDefault();
-    if(sIdx>=0&&items[sIdx])choose(items[sIdx].dataset.n);
-    else if(items.length&&!picked)choose(items[0].dataset.n);
+    if(sIdx>=0&&items[sIdx])pickSugg(items[sIdx]);
+    else if(items.length&&!picked&&!$("#sugg").hidden)pickSugg(items[0]);
     else addFood();
   } else if(e.key==="Escape"){$("#sugg").hidden=true}
 });
-$("#sugg").addEventListener("click",e=>{const d=e.target.closest("div[data-n]");if(d)choose(d.dataset.n)});
+$("#sugg").addEventListener("click",e=>{pickSugg(e.target.closest("div[data-n],div[data-ai]"))});
 document.addEventListener("click",e=>{if(!e.target.closest(".f"))$("#sugg").hidden=true});
 $("#add").addEventListener("click",()=>addFood());
 $("#gr").addEventListener("keydown",e=>{if(e.key==="Enter")addFood()});
@@ -933,9 +1048,419 @@ document.addEventListener("visibilitychange",()=>{
   if(document.hidden&&needSave&&cloud){clearTimeout(saveTimer);doSave()}
 });
 
+/* --- Claude: фото еды, этикетки, описание словами, оценка продукта --- */
+let AI=null, AI_IMG=false, sheetCtl=null, pending=null, pendingBC=null, review=[];
+const CATS=["dish","meat","fish","egg","dairy","cheese","grain","bread","legume","veg","fruit","nut","seed","oil","sweet","drink","alco","other"];
+const PER100='"per100":{"kcal":0,"p":0,"f":0,"c":0,"fib":0,"fe":0,"ca":0,"mg":0,"k":0,"zn":0,"vc":0,"vd":0,"b12":0,"fol":0,"o3":0}';
+const UNITS="Единицы в per100 (всё на 100 г съедобной части): kcal — ккал; p, f, c, fib (клетчатка), o3 (омега-3) — граммы; "+
+  "fe, ca, mg, k, zn, vc — миллиграммы; vd, b12, fol (фолат) — микрограммы. Ставь реалистичные справочные значения, не нули, если нутриент в продукте есть.";
+const CAT_HINT="cat — одно из: "+CATS.join(", ")+".";
+
+function aiInit(){
+  if(!(window.claude&&typeof claude.use==="function"))return;
+  claude.use("sample").then(s=>{
+    if(!s)return;
+    AI=s;
+    return s.limits().then(l=>{AI_IMG=!!(l&&l.images)},()=>{});
+  }).catch(()=>{}).then(quickUI);
+}
+function quickUI(){
+  $("#qa-food").hidden=!AI_IMG; $("#qa-text").hidden=!AI; $("#c-quick").hidden=!AI_IMG;
+}
+function aiErr(e){
+  const c=e&&e.code;
+  if(["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(c)){
+    AI=null;AI_IMG=false;quickUI();return "Этой странице не разрешено обращаться к Claude, поэтому оценка недоступна.";}
+  if(c==="images_unavailable"){AI_IMG=false;quickUI();return "Отправлять фото отсюда нельзя — попробуй описать словами.";}
+  if(c==="rate_limited")return "Слишком много запросов подряд или закончился лимит — попробуй чуть позже.";
+  if(c==="image_rejected")return "Это фото не подошло — попробуй другое, почётче.";
+  if(c==="invalid_json")return "Не получилось разобрать ответ — попробуй ещё раз.";
+  if(c==="session_expired")return "Нужно заново войти в Claude.";
+  if(c==="refused")return "Claude не стал это оценивать.";
+  return "Не получилось связаться с Claude — попробуй ещё раз.";
+}
+const num0=v=>{v=+v;return isFinite(v)&&v>0?v:0};
+function cleanNut(o){const r={};o=o||{};KEYS.forEach(k=>r[k]=Math.round(num0(o[k])*100)/100);r.kcal=Math.min(r.kcal,950);return r}
+function normFood(r){
+  return Object.assign({name:String(r.name||"Продукт").trim().slice(0,60),cat:CATS.includes(r.cat)?r.cat:"other",
+    portion:Math.min(2000,Math.max(1,Math.round(num0(r.portion)||100)))},cleanNut(r.per100));
+}
+function dbNames(){return FOODS.map(f=>f.name).join("; ")}
+
+/* --- нижняя панель --- */
+function openSheet(title,html){
+  $("#sheet-t").textContent=title; $("#sheet-b").innerHTML=html;
+  if($("#sheet").hidden){$("#sheet").hidden=false;document.body.style.overflow="hidden"}
+}
+function closeSheet(){
+  if(sheetCtl)sheetCtl.abort(); sheetCtl=null; pending=null; review=[];
+  $("#sheet").hidden=true; document.body.style.overflow="";
+}
+function busyHTML(msg,thumb){
+  return (thumb?'<img class="thumb" src="'+thumb+'" alt="">':'')+
+    '<div class="busy"><span class="spin"></span><span>'+esc(msg)+'</span></div>'+
+    '<div class="sheet-foot"><button class="btn ghost" data-act="close">Отмена</button></div>';
+}
+function msgHTML(text,bad,btns){
+  return '<p class="msg'+(bad?' bad':'')+'">'+esc(text)+'</p><div class="sheet-foot">'+(btns||'')+
+    '<button class="btn ghost" data-act="close">Закрыть</button></div>';
+}
+function newCtl(){if(sheetCtl)sheetCtl.abort();sheetCtl=new AbortController();return sheetCtl}
+
+/* картинку уменьшаем до разумного размера перед отправкой */
+function loadCanvas(file,max){
+  return new Promise((res,rej)=>{
+    const u=URL.createObjectURL(file), im=new Image();
+    im.onload=()=>{
+      const sc=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
+      const c=document.createElement("canvas");
+      c.width=Math.max(1,Math.round(im.naturalWidth*sc)); c.height=Math.max(1,Math.round(im.naturalHeight*sc));
+      c.getContext("2d").drawImage(im,0,0,c.width,c.height); URL.revokeObjectURL(u); res(c);
+    };
+    im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error("img"))};
+    im.src=u;
+  });
+}
+const toJpeg=c=>new Promise(r=>c.toBlob(b=>r(b),"image/jpeg",0.86));
+function thumbOf(c){try{const s=Math.min(1,420/c.width),t=document.createElement("canvas");
+  t.width=Math.round(c.width*s);t.height=Math.round(c.height*s);t.getContext("2d").drawImage(c,0,0,t.width,t.height);
+  return t.toDataURL("image/jpeg",0.7)}catch(e){return ""}}
+
+/* добавить запись в текущий день */
+function addEntry(f,g,remember){
+  const e=Object.assign({},f); delete e.alt;
+  (days[cur]=days[cur]||[]).push({f:e,g:Math.max(1,Math.round(g))});
+  if(remember)recent=[f.name].concat(recent.filter(n=>n!==f.name)).slice(0,12);
+  store.set("norma_days",days); store.set("norma_recent",recent); touch(cur);
+}
+function saveCustom(f){
+  custom=custom.filter(x=>x.name!==f.name&&!(f.bc&&x.bc===f.bc)).concat([f]);
+  store.set("norma_custom",custom); touchMeta();
+}
+
+/* --- карточка одного продукта: проверить и добавить --- */
+function prodSheet(f,opt){
+  pending=Object.assign({},f); opt=opt||{};
+  const fld=(id,l,v,st)=>'<div class="fld"><label for="'+id+'">'+l+'</label><input type="number" id="'+id+'" value="'+v+'" step="'+(st||0.1)+'" min="0" /></div>';
+  openSheet(opt.title||"Проверь и добавь",
+    '<p class="src">'+esc(opt.src||"")+(f.bc?' · штрихкод '+esc(f.bc):'')+'</p>'+
+    '<div class="fld"><label for="pc-name">Название</label><input type="text" id="pc-name" value="'+esc(f.name)+'" /></div>'+
+    '<p class="u" style="margin:12px 0 6px">На 100 г</p>'+
+    '<div class="grid4">'+fld("pc-kcal","Ккал",Math.round(f.kcal),1)+fld("pc-p","Белки",f.p)+fld("pc-f","Жиры",f.f)+fld("pc-c","Углев.",f.c)+'</div>'+
+    (opt.comment?'<p class="msg mt">'+esc(opt.comment)+'</p>':'')+
+    '<div class="sheet-foot"><input type="number" id="pc-g" value="'+f.portion+'" min="1" max="3000" aria-label="Граммы" />'+
+    '<span class="u">г</span><span class="kc-out grow" id="pc-k"></span>'+
+    '<button class="btn" data-act="pc-add">Добавить</button></div>'+
+    '<p class="hint">Продукт сохранится в «Свой продукт» — в следующий раз найдётся поиском'+(f.bc?' и по штрихкоду':'')+'.</p>');
+  pcCalc();
+}
+function pcCalc(){
+  const k=+$("#pc-kcal").value||0, g=+$("#pc-g").value||0;
+  $("#pc-k").textContent="= "+Math.round(k*g/100)+" ккал";
+}
+function pcAdd(){
+  if(!pending)return;
+  const name=$("#pc-name").value.trim()||pending.name;
+  const f=Object.assign({},pending,{name,kcal:num0($("#pc-kcal").value),p:num0($("#pc-p").value),
+    f:num0($("#pc-f").value),c:num0($("#pc-c").value)});
+  const g=Math.max(1,Math.round(+$("#pc-g").value||f.portion));
+  f.portion=g; delete f.alt;
+  saveCustom(f); addEntry(f,g,true); scheduleSave();
+  closeSheet(); picked=null; $("#q").value=""; $("#gr").value=100; render();
+}
+
+/* --- список из нескольких блюд (фото тарелки, описание словами) --- */
+function itemsFrom(r){
+  const arr=Array.isArray(r&&r.items)?r.items:[];
+  return arr.slice(0,12).map(it=>{
+    const g=Math.min(3000,Math.max(1,Math.round(num0(it.grams)||100)));
+    const db=it.db&&FOODS.find(f=>f.name===it.db);
+    const f=db?Object.assign({},db):normFood({name:it.name,cat:it.cat,portion:g,per100:it.per100});
+    return {f,g,on:true,db:!!db};
+  }).filter(x=>x.f.name);
+}
+function rvMeta(x){const k=v=>Math.round(x.f[v]*x.g/100);
+  return k("kcal")+" ккал · Б "+k("p")+" · Ж "+k("f")+" · У "+k("c")}
+function reviewSheet(title,items,comment,thumb){
+  review=items;
+  if(!items.length){openSheet(title,msgHTML(comment||"Не получилось разобрать, что здесь за еда. Попробуй ещё раз или добавь вручную."));return}
+  openSheet(title,(thumb?'<img class="thumb" src="'+thumb+'" alt="">':'')+
+    (comment?'<p class="msg">'+esc(comment)+'</p>':'')+
+    items.map((x,i)=>'<div class="rv"><input type="checkbox" data-rv-on="'+i+'" checked aria-label="Учитывать '+esc(x.f.name)+'" />'+
+      '<div class="rn">'+esc(x.f.name)+'<i id="rv-m'+i+'">'+rvMeta(x)+'</i></div>'+
+      '<input type="number" data-rv-g="'+i+'" value="'+x.g+'" min="1" max="3000" aria-label="Граммы" /><span class="u">г</span></div>').join("")+
+    '<div class="sheet-foot"><span class="kc-out grow" id="rv-total"></span><button class="btn" data-act="rv-add">Добавить</button></div>'+
+    '<p class="hint">Вес — оценка. Поправь граммы, если знаешь точнее, и сними галочку с лишнего.</p>');
+  rvTotal();
+}
+function rvTotal(){
+  const on=review.filter(x=>x.on);
+  $("#rv-total").textContent=on.length?"итого "+Math.round(on.reduce((s,x)=>s+x.f.kcal*x.g/100,0))+" ккал":"ничего не выбрано";
+}
+function rvAdd(){
+  const on=review.filter(x=>x.on&&x.g>0); if(!on.length)return;
+  on.forEach(x=>addEntry(x.f,x.g,x.db));
+  scheduleSave(); closeSheet(); render();
+}
+
+/* --- запросы к Claude --- */
+function aiLookup(q){
+  if(!AI)return;
+  $("#sugg").hidden=true; $("#q").blur();
+  const ctl=newCtl();
+  openSheet("«"+q+"»",busyHTML("Claude оценивает состав…"));
+  AI.json("Оцени средний состав продукта или блюда «"+q+"» на 100 г — как в справочниках, в готовом к употреблению виде. "+
+    UNITS+" "+CAT_HINT+" portion — типичная порция в граммах. comment — одно короткое предложение по-русски, что именно посчитано "+
+    "(например, «печёночный паштет из свиной печени»). Ответь только JSON: {\"name\":\"короткое название по-русски\",\"cat\":\"meat\",\"portion\":40,"+
+    PER100+",\"comment\":\"...\"}. Если это не еда и не напиток — {\"name\":null}.",
+    {modelTier:"quick",signal:ctl.signal}).then(r=>{
+      if(ctl.signal.aborted)return;
+      if(!r||!r.name||!r.per100)return openSheet("«"+q+"»",msgHTML("Не похоже на еду — проверь название.",true));
+      const f=normFood(r); f.src="ai";
+      prodSheet(f,{src:"оценка Claude",comment:r.comment,title:"Проверь и добавь"});
+    },e=>{if(e&&e.code!=="cancelled"&&!ctl.signal.aborted)openSheet("«"+q+"»",msgHTML(aiErr(e),true))});
+}
+
+function plateRequest(input,images,title,thumb){
+  const ctl=newCtl();
+  openSheet(title,busyHTML(images?"Claude рассматривает фото — обычно 10–40 секунд…":"Claude считает…",thumb));
+  AI.json(input,{signal:ctl.signal,images:images||undefined}).then(r=>{
+    if(ctl.signal.aborted)return;
+    reviewSheet(title,itemsFrom(r),r&&r.comment,thumb);
+  },e=>{if(e&&e.code!=="cancelled"&&!ctl.signal.aborted)openSheet(title,msgHTML(aiErr(e),true))});
+}
+function platePrompt(src,hint){
+  return "Ты — внимательный нутрициолог. "+src+" Раздели на отдельные продукты и блюда (соусы и масло — отдельной строкой, если их заметно). "+
+    "Для каждого оцени вес в граммах"+(src.indexOf("фото")>=0?" по размеру относительно тарелки, приборов, рук":"; если вес не указан — типичная порция (1 яйцо ≈ 55 г, ломтик хлеба ≈ 30 г, чашка кофе ≈ 250 мл)")+". "+
+    (hint?"Уточнение от пользователя: «"+hint+"». ":"")+
+    "Если продукт точно совпадает с одним из названий справочника, впиши это название без изменений в поле db, иначе db = null и заполни per100. "+
+    "Справочник: "+dbNames()+". "+UNITS+" "+CAT_HINT+" "+
+    "comment — 1–2 коротких предложения по-русски: что видно и насколько уверена оценка. "+
+    "Ответь только JSON: {\"items\":[{\"name\":\"Гречка с маслом\",\"grams\":180,\"db\":null,\"cat\":\"grain\","+PER100+"}],\"comment\":\"...\"}. "+
+    "Названия — по-русски, коротко. Если еды нет — {\"items\":[],\"comment\":\"...\"}.";
+}
+
+/* фото еды */
+function onFoodFile(file){
+  loadCanvas(file,1568).then(c=>{
+    const thumb=thumbOf(c);
+    pending={canvas:c,thumb};
+    openSheet("Фото еды",'<img class="thumb" src="'+thumb+'" alt="">'+
+      '<div class="fld"><label for="ph-hint">Уточнение (необязательно)</label>'+
+      '<input type="text" id="ph-hint" placeholder="например: соус песто, порция большая" /></div>'+
+      '<div class="sheet-foot"><button class="btn" data-act="food-go">Посчитать</button>'+
+      '<button class="btn ghost" data-act="close">Отмена</button></div>');
+  },()=>openSheet("Фото еды",msgHTML("Не получилось открыть фото.",true)));
+}
+function foodGo(){
+  if(!pending||!pending.canvas)return;
+  const {canvas,thumb}=pending, hint=($("#ph-hint").value||"").trim();
+  toJpeg(canvas).then(b=>plateRequest(platePrompt("На фото — еда, которую пользователь съел или собирается съесть.",hint),[b],"Что на фото",thumb));
+}
+
+/* описание словами */
+function textSheet(){
+  openSheet("Опиши, что съела",
+    '<textarea id="tx-in" style="font-family:var(--body);font-size:16px;min-height:90px" '+
+    'placeholder="Например: 2 яйца, тост с маслом, капучино без сахара"></textarea>'+
+    '<div class="sheet-foot"><button class="btn" data-act="text-go">Посчитать</button>'+
+    '<button class="btn ghost" data-act="close">Отмена</button></div>'+
+    '<p class="hint">Можно с граммами или без — тогда возьму обычные порции.</p>');
+  setTimeout(()=>{const t=$("#tx-in");if(t)t.focus()},50);
+}
+function textGo(){
+  const t=($("#tx-in").value||"").trim().slice(0,1500); if(!t)return $("#tx-in").focus();
+  plateRequest(platePrompt("Пользователь описал словами, что съел: «"+t+"».",""),null,"Что съедено");
+}
+
+/* фото этикетки / упаковки */
+function onLabelFile(file){
+  const bc=pendingBC; pendingBC=null;
+  loadCanvas(file,1800).then(c=>{
+    const thumb=thumbOf(c), ctl=newCtl();
+    openSheet("Этикетка",busyHTML("Claude читает этикетку…",thumb));
+    return toJpeg(c).then(b=>AI.json(
+      "На фото — упаковка продукта: название и, возможно, таблица пищевой ценности. Прочитай название (бренд и продукт) и "+
+      "пищевую ценность на 100 г; если на этикетке указано только на порцию — пересчитай на 100 г. "+
+      "Нутриенты, которых нет на этикетке, оцени по типу продукта и составу. "+UNITS+" "+CAT_HINT+" "+
+      "portion — вес одной разумной порции в граммах (для маленькой упаковки — вся упаковка). "+
+      "fromLabel = true, если КБЖУ прочитаны с этикетки, false — если пришлось оценивать. "+
+      "comment — одно короткое предложение по-русски. Ответь только JSON: {\"name\":\"...\",\"cat\":\"dairy\",\"portion\":100,"+
+      "\"fromLabel\":true,"+PER100+",\"comment\":\"...\"}. Если на фото не продукт — {\"name\":null}.",
+      {images:[b],signal:ctl.signal}).then(r=>{
+        if(ctl.signal.aborted)return;
+        if(!r||!r.name||!r.per100)return openSheet("Этикетка",msgHTML("Не вижу на фото упаковку продукта. Попробуй ещё раз, чтобы таблица КБЖУ была в кадре.",true,
+          '<button class="btn" data-act="label">Ещё раз</button>'));
+        const f=normFood(r); f.src="label"; if(bc)f.bc=bc;
+        prodSheet(f,{src:r.fromLabel?"прочитано с этикетки":"оценка по фото упаковки",comment:r.comment});
+      },e=>{if(e&&e.code!=="cancelled"&&!ctl.signal.aborted)openSheet("Этикетка",msgHTML(aiErr(e),true))}));
+  }).catch(()=>openSheet("Этикетка",msgHTML("Не получилось открыть фото.",true)));
+}
+
+/* --- штрихкод --- */
+let zxLoad=null;
+function loadZX(){
+  if(window.ZXing)return Promise.resolve(window.ZXing);
+  if(!zxLoad)zxLoad=new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";
+    s.onload=()=>window.ZXing?res(window.ZXing):rej(new Error("zx"));
+    s.onerror=()=>{zxLoad=null;rej(new Error("zx"))};
+    document.head.appendChild(s);
+  });
+  return zxLoad;
+}
+function zxTry(Z,c){
+  const ctx=c.getContext("2d"), d=ctx.getImageData(0,0,c.width,c.height).data, n=c.width*c.height;
+  const lum=new Uint8ClampedArray(n);
+  for(let i=0,j=0;i<n;i++,j+=4)lum[i]=(d[j]*306+d[j+1]*601+d[j+2]*117)>>10;
+  const hints=new Map();
+  hints.set(Z.DecodeHintType.TRY_HARDER,true);
+  hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.EAN_8,Z.BarcodeFormat.UPC_A,Z.BarcodeFormat.UPC_E,Z.BarcodeFormat.CODE_128]);
+  const r=new Z.MultiFormatReader(); r.setHints(hints);
+  for(const Bin of [Z.HybridBinarizer,Z.GlobalHistogramBinarizer]){
+    try{return r.decode(new Z.BinaryBitmap(new Bin(new Z.RGBLuminanceSource(lum,c.width,c.height)))).getText()}catch(e){}
+  }
+  return null;
+}
+function variants(c){
+  const out=[c];
+  const sc=(src,m)=>{const t=document.createElement("canvas");t.width=Math.round(src.width*m);t.height=Math.round(src.height*m);
+    t.getContext("2d").drawImage(src,0,0,t.width,t.height);return t};
+  if(Math.max(c.width,c.height)>900)out.push(sc(c,800/Math.max(c.width,c.height)));
+  const r=document.createElement("canvas");r.width=c.height;r.height=c.width;
+  const x=r.getContext("2d");x.translate(r.width/2,r.height/2);x.rotate(Math.PI/2);x.drawImage(c,-c.width/2,-c.height/2);
+  out.push(r);
+  return out;
+}
+function decodeBarcode(file){
+  return loadCanvas(file,1600).then(c=>{
+    const viaZX=()=>loadZX().then(Z=>{for(const v of variants(c)){const t=zxTry(Z,v);if(t)return t}return null}).catch(()=>null);
+    if("BarcodeDetector" in window){
+      let det; try{det=new BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e","code_128"]})}catch(e){return viaZX()}
+      return det.detect(c).then(r=>r&&r.length?r[0].rawValue:viaZX(),viaZX);
+    }
+    return viaZX();
+  });
+}
+function scanFailHTML(text){
+  return '<p class="msg">'+esc(text)+'</p>'+
+    '<div class="addrow"><div class="f"><input type="text" id="bc-in" inputmode="numeric" placeholder="Цифры под штрихкодом" autocomplete="off" /></div>'+
+    '<button class="btn" data-act="bc-find">Найти</button></div>'+
+    '<div class="sheet-foot"><button class="btn ghost" data-act="scan">Сфотографировать ещё раз</button>'+
+    (AI_IMG?'<button class="btn ghost" data-act="label">Фото этикетки</button>':'')+'</div>';
+}
+function onScanFile(file){
+  newCtl();
+  openSheet("Штрихкод",busyHTML("Ищу штрихкод на фото…"));
+  decodeBarcode(file).then(code=>{
+    if($("#sheet").hidden)return;
+    if(!code)return openSheet("Штрихкод",scanFailHTML("Не получилось разглядеть штрихкод. Сфотографируй ближе и ровнее, при хорошем свете — или введи цифры."));
+    findBarcode(code);
+  },()=>openSheet("Штрихкод",scanFailHTML("Не получилось открыть фото. Попробуй ещё раз или введи цифры.")));
+}
+
+/* Open Food Facts: undefined — сеть недоступна, null — товара нет */
+function offLookup(code,signal){
+  const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),9000);
+  if(signal)signal.addEventListener("abort",()=>ctl.abort());
+  return fetch("https://world.openfoodfacts.org/api/v2/product/"+encodeURIComponent(code)+
+    ".json?fields=product_name,product_name_ru,product_name_cs,product_name_en,brands,serving_quantity,nutriments",{signal:ctl.signal})
+    .then(r=>r.status===404?null:r.ok?r.json().then(j=>j&&j.status===1&&j.product?j.product:null):undefined)
+    .catch(()=>undefined).finally(()=>clearTimeout(t));
+}
+function offToFood(p,code){
+  const n=p.nutriments||{};
+  const g=k=>{const v=n[k+"_100g"];return v==null||v===""||!isFinite(+v)?null:+v};
+  let kcal=g("energy-kcal"); if(kcal==null&&g("energy")!=null)kcal=g("energy")/4.184;
+  if(kcal==null)return null;
+  const m=(k,x)=>{const v=g(k);return v==null?null:v*x};
+  const nm=(p.product_name_ru||p.product_name_cs||p.product_name||p.product_name_en||"").trim();
+  const brand=(p.brands||"").split(",")[0].trim();
+  const f={name:((nm||"Товар "+code)+(brand&&nm.indexOf(brand)<0?" · "+brand:"")).slice(0,60),cat:"other",
+    portion:Math.round(num0(p.serving_quantity))||100,bc:code,src:"barcode",
+    kcal,p:g("proteins"),f:g("fat"),c:g("carbohydrates"),fib:g("fiber"),
+    fe:m("iron",1e3),ca:m("calcium",1e3),mg:m("magnesium",1e3),k:m("potassium",1e3),zn:m("zinc",1e3),
+    vc:m("vitamin-c",1e3),vd:m("vitamin-d",1e6),b12:m("vitamin-b12",1e6),fol:m("vitamin-b9",1e6)??m("folates",1e6),o3:g("omega-3-fat")};
+  return f;
+}
+function enrich(f,signal){
+  const miss=KEYS.filter(k=>f[k]==null);
+  const done=()=>{KEYS.forEach(k=>{f[k]=Math.round(num0(f[k])*100)/100});return f};
+  if(!miss.length||!AI)return Promise.resolve(done());
+  const known=KEYS.filter(k=>f[k]!=null).map(k=>k+"="+f[k]).join(", ");
+  return AI.json("Продукт: «"+f.name+"». Известно на 100 г: "+known+". Оцени по типу продукта недостающие показатели на 100 г: "+miss.join(", ")+
+    ". Также дай cat — категорию. "+UNITS+" "+CAT_HINT+" Ответь только JSON с этими ключами, например {\"cat\":\"dairy\",\""+miss[0]+"\":0}.",
+    {modelTier:"quick",signal}).then(r=>{
+      miss.forEach(k=>{if(r&&r[k]!=null)f[k]=num0(r[k])});
+      if(r&&CATS.includes(r.cat))f.cat=r.cat;
+      return done();
+    },()=>done());
+}
+function findBarcode(code){
+  code=String(code).replace(/\D/g,"");
+  if(code.length<6)return openSheet("Штрихкод",scanFailHTML("В штрихкоде должно быть 8–13 цифр. Проверь и попробуй ещё раз."));
+  const known=custom.find(c=>c.bc===code);
+  if(known)return prodSheet(Object.assign({portion:100,cat:"other"},known),{src:"из твоих продуктов"});
+  const ctl=newCtl();
+  openSheet("Штрихкод",busyHTML("Ищу товар "+code+" в открытой базе продуктов…"));
+  offLookup(code,ctl.signal).then(p=>{
+    if(ctl.signal.aborted)return;
+    const f=p&&offToFood(p,code);
+    if(f){
+      openSheet("Штрихкод",busyHTML("Нашла: "+f.name+(AI?". Дооцениваю микроэлементы…":"")));
+      return enrich(f,ctl.signal).then(ff=>{if(!ctl.signal.aborted)prodSheet(ff,{src:"по штрихкоду · Open Food Facts"})});
+    }
+    pendingBC=code;
+    const why=p===undefined?"Не получилось связаться с базой продуктов.":"Этого товара ("+code+") нет в открытой базе продуктов.";
+    openSheet("Штрихкод",AI_IMG
+      ? msgHTML(why+" Сфотографируй таблицу КБЖУ на упаковке — я прочитаю её и запомню этот штрихкод.",false,
+          '<button class="btn" data-act="label">Фото этикетки</button>')
+      : msgHTML(why+" Добавь продукт вручную в разделе «Свой продукт».",false,'<button class="btn" data-act="custom">Ввести вручную</button>'));
+  });
+}
+
+/* --- события панели --- */
+$("#qa-scan").addEventListener("click",()=>$("#f-scan").click());
+$("#qa-food").addEventListener("click",()=>$("#f-food").click());
+$("#qa-text").addEventListener("click",textSheet);
+$("#c-label").addEventListener("click",()=>{pendingBC=null;$("#f-label").click()});
+[["#f-scan",onScanFile],["#f-food",onFoodFile],["#f-label",onLabelFile]].forEach(([id,fn])=>{
+  $(id).addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];e.target.value="";if(f)fn(f)});
+});
+$("#sheet").addEventListener("click",e=>{
+  if(e.target===$("#sheet"))return closeSheet();
+  const b=e.target.closest("[data-act]"); if(!b)return;
+  const a=b.dataset.act;
+  if(a==="close")closeSheet();
+  else if(a==="pc-add")pcAdd();
+  else if(a==="rv-add")rvAdd();
+  else if(a==="food-go")foodGo();
+  else if(a==="text-go")textGo();
+  else if(a==="scan")$("#f-scan").click();
+  else if(a==="label")$("#f-label").click();
+  else if(a==="bc-find"){const v=$("#bc-in").value;if(v.trim())findBarcode(v);else $("#bc-in").focus()}
+  else if(a==="custom"){closeSheet();const d=$("#c-name").closest("details");d.open=true;$("#c-name").focus();d.scrollIntoView({behavior:"smooth"})}
+});
+$("#sheet").addEventListener("input",e=>{
+  const t=e.target;
+  if(t.id==="pc-kcal"||t.id==="pc-g")pcCalc();
+  if(t.dataset.rvG!=null){const i=+t.dataset.rvG;review[i].g=Math.max(0,Math.round(+t.value||0));$("#rv-m"+i).textContent=rvMeta(review[i]);rvTotal()}
+});
+$("#sheet").addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.rvOn!=null){review[+t.dataset.rvOn].on=t.checked;rvTotal()}
+});
+$("#sheet").addEventListener("keydown",e=>{
+  if(e.key==="Escape")closeSheet();
+  if(e.key==="Enter"&&e.target.id==="bc-in"){e.preventDefault();findBarcode(e.target.value)}
+  if(e.key==="Enter"&&e.target.id==="pc-g"){e.preventDefault();pcAdd()}
+  if(e.key==="Enter"&&e.target.id==="ph-hint"){e.preventDefault();foodGo()}
+});
+
 /* --- старт --- */
 $("#sex").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===profile.sex));
 ["age","hgt","wgt","act","goal"].forEach(id=>{if(profile[id]!=null)$("#"+id).value=profile[id]});
 if(profile.manual)$("#manual").value=profile.manual;
-label(); render(); cloudInit();
+label(); render(); cloudInit(); aiInit();
 </script>
